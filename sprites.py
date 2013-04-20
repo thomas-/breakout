@@ -31,6 +31,9 @@ class Ball(Sprite):
         self.velocity = [3, -3]
 
     def collider(self, block):
+        if hasattr(block, 'velocity'):
+            self.velocity[0] += block.velocity * 0.25
+
         # left
         if self.rect.colliderect(
             pygame.Rect(block.rect.left, block.rect.top, 1, block.rect.height)):
