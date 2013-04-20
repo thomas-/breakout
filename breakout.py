@@ -2,10 +2,11 @@
 
 import argparse
 from sys import exit
+from random import randint
 
 import pygame
 from pygame.locals import *
-from pygame.sprite import Sprite
+from sprites import Ball, Racket, Block
 
 def render_text(s, fontsize):
     font = pygame.font.Font(None, fontsize)
@@ -14,65 +15,6 @@ def render_text(s, fontsize):
 
 def exit_game():
     exit()
-
-class Ball(Sprite):
-    def __init__(self, color, position, racket):
-        Sprite.__init__(self)
-        self.image = pygame.Surface((6,6))
-        pygame.draw.circle(self.image, pygame.Color(color), (3,3), 3)
-        self.rect = self.image.get_rect()
-        self.rect.center = position
-        self.velocity = [0,0]
-        self.racket = racket
-
-    def start(self):
-        self.velocity = [10, -10]
-
-    def update(self):
-        self.rect.move_ip(*self.velocity)
-        if self.rect.colliderect(self.racket.rect):
-            print "collide"
-            self.velocity[1] *= -1.2
-            self.rect.x += self.velocity[0]
-
-
-        if self.rect.top < 50:
-            self.velocity[1] *= -1
-            self.rect.top = 51
-        if self.rect.left < 190:
-            self.velocity[0] *= -1
-            self.rect.left = 191
-        if self.rect.right > 610:
-            self.velocity[0] *= -1
-            self.rect.right = 609
-        if self.rect.bottom > 600:
-            if self.velocity[1] > 0:
-                self.velocity[0] = 0
-                self.velocity[1] = 0
-                print "game over"
-
-class Racket(Sprite):
-    def __init__(self, color, position):
-        Sprite.__init__(self)
-        self.image = pygame.Surface([40, 10])
-        self.rect = pygame.Rect(0,0,40,10)
-        pygame.draw.rect(self.image, pygame.Color(color), self.rect)
-        self.rect.center = position
-        self.velocity = 0
-
-    def left(self):
-        self.velocity -= 15
-
-    def right(self):
-        self.velocity += 15
-
-    def update(self):
-        if self.rect.left < 100 and self.velocity < 0:
-            pass
-        elif self.rect.right > 700 and self.velocity > 0:
-            pass
-        else:
-            self.rect.move_ip(self.velocity, 0)
 
 class Options():
     def __init__(self, res, opts):
@@ -160,7 +102,13 @@ def menu(screen, clock):
 def breakout(screen, clock):
     game = pygame.Surface((600,600))
     racket = Racket('white', (380, 560))
-    ball = Ball("yellow", (380, 550), racket)
+
+    blocks = []
+    for i in xrange(0, 6):
+        for j in xrange(0, 14):
+            blocks.append(Block((randint(0,255),randint(0,255),randint(0,255)), (i,j)))
+
+    ball = Ball("yellow", (380, 550), racket, blocks)
 
     keymap = {
             pygame.K_SPACE: [ball.start, nop],
@@ -173,12 +121,12 @@ def breakout(screen, clock):
     while isrunning:
         bg = pygame.Surface((800,600))
         bg.fill(pygame.Color("black"))
-        pygame.draw.Rect(bg, pygame.Color("white"), (190,50), (190,600), 5)
-        pygame.draw.Rect(bg, pygame.Color("white"), (610,50), (610,600), 5)
-        pygame.draw.Rect(bg, pygame.Color("white"), (190,50), (610,50), 5)
+        pygame.draw.line(bg, pygame.Color("white"), (190,50), (190,600), 5)
+        pygame.draw.line(bg, pygame.Color("white"), (610,50), (610,600), 5)
+        pygame.draw.line(bg, pygame.Color("white"), (190,50), (610,50), 5)
         screen.blit(bg, (0,0))
 
-        sprites = pygame.sprite.RenderClear([racket, ball])
+        sprites = pygame.sprite.RenderClear([racket, ball, blocks])
 
         sprites.update()
         sprites.draw(screen)
@@ -195,7 +143,7 @@ def breakout(screen, clock):
                 keymap[event.key][1]()
 
 
-        clock.tick(30)
+        clock.tick(60)
 
 
 def main():
