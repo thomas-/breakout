@@ -148,7 +148,7 @@ def breakout(screen, clock):
             if (event.type == pygame.USEREVENT):
                 if event.event == 'score':
                     score.update(event.score)
-                if event.event == 'lives':
+                elif event.event == 'lives':
                     lives.update(event.lives)
                 else:
                     print event
