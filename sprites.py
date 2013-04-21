@@ -27,10 +27,13 @@ class Ball(Sprite):
         self.velocity = [0,0]
         self.racket = racket
         self.blocks = blocks
+        self.dead = True
         self.combo = 0
 
     def start(self):
-        self.velocity = [3, -3]
+        if self.dead:
+            self.velocity = [3, -3]
+            self.dead = False
 
     def collider(self, block):
         if hasattr(block, 'velocity'):
@@ -65,6 +68,9 @@ class Ball(Sprite):
             return
 
     def update(self):
+        if self.dead:
+            self.rect.center = (self.racket.rect.center[0], self.racket.rect.top - 10)
+
         self.rect.move_ip(*self.velocity)
         if self.rect.colliderect(self.racket.rect):
             self.combo = 0
@@ -77,7 +83,7 @@ class Ball(Sprite):
             if hits[0].hit():
                 self.combo += 1
                 pygame.event.post(pygame.event.Event(pygame.USEREVENT,
-                                                     {'type': 'score',
+                                                     {'event': 'score',
                                                       'score': self.combo*10
                                                       }))
                 self.blocks.remove(hits[0])
@@ -95,7 +101,15 @@ class Ball(Sprite):
             if self.velocity[1] > 0:
                 self.velocity[0] = 0
                 self.velocity[1] = 0
-                print "game over"
+                self.killed()
+
+    def killed(self):
+        self.combo = 0
+        self.dead = True
+        pygame.event.post(pygame.event.Event(pygame.USEREVENT,
+                                                {'event': 'lives',
+                                                'lives': -1
+                                                }))
 
 class Racket(Sprite):
     def __init__(self, color, position):
@@ -136,6 +150,24 @@ class Score(Sprite):
         text = self.font.render(str(self.score), True, pygame.Color("white"))
         rect = text.get_rect()
         rect.right = 180
+        self.image.blit(text, rect)
+
+class Lives(Sprite):
+    def __init__(self, lives=3):
+        Sprite.__init__(self)
+        self.image = pygame.Surface([180, 50])
+        self.rect = self.image.get_rect()
+        self.rect.bottom = 600
+        self.rect.right = 800
+        self.lives = lives
+        self.font = pygame.font.Font(None, 48)
+        self.update()
+
+    def update(self, lives=0):
+        self.image.fill(pygame.Color("black"))
+        self.lives += lives
+        text = self.font.render("Lives: "+str(self.lives), True, pygame.Color("white"))
+        rect = text.get_rect()
         self.image.blit(text, rect)
 
 
