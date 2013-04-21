@@ -6,7 +6,7 @@ from random import randint
 
 import pygame
 from pygame.locals import *
-from sprites import Ball, Racket, Block
+from sprites import Ball, Racket, Block, Score
 
 def render_text(s, fontsize):
     font = pygame.font.Font(None, fontsize)
@@ -106,7 +106,9 @@ def breakout(screen, clock):
     blocks = []
     for i in xrange(0, 6):
         for j in xrange(0, 14):
-            blocks.append(Block((randint(0,255),randint(0,255),randint(0,255)), (i,j)))
+            blocks.append(Block(1, (randint(0,255),randint(0,255),randint(0,255)), (i,j)))
+
+    score = Score()
 
     ball = Ball("yellow", (380, 550), racket, blocks)
 
@@ -126,7 +128,7 @@ def breakout(screen, clock):
         pygame.draw.line(bg, pygame.Color("white"), (190,50), (610,50), 5)
         screen.blit(bg, (0,0))
 
-        sprites = pygame.sprite.RenderClear([racket, ball, blocks])
+        sprites = pygame.sprite.Group([racket, ball, blocks, score])
 
         sprites.update()
         sprites.draw(screen)
@@ -141,7 +143,8 @@ def breakout(screen, clock):
                 keymap[event.key][0]()
             if (event.type == pygame.KEYUP) and (event.key in keymap):
                 keymap[event.key][1]()
-
+            if (event.type == pygame.USEREVENT):
+                score.update(event.score)
 
         clock.tick(60)
 

@@ -4,16 +4,17 @@ from pygame.sprite import Sprite
 class Block(Sprite):
     blockwidth = 30
     blockheight = 15
-    def __init__(self, color, position):
+    def __init__(self, life, color, position):
         Sprite.__init__(self)
         self.image = pygame.Surface((self.blockwidth-1,self.blockheight-1))
         self.image.fill(color)
         self.rect = self.image.get_rect()
         self.rect.top = 120 + (position[0]*self.blockheight)
         self.rect.left = 190 + (position[1]*self.blockwidth)
+        self.life = life
 
     def hit(self):
-        pass
+        return True
 
 
 class Ball(Sprite):
@@ -26,6 +27,7 @@ class Ball(Sprite):
         self.velocity = [0,0]
         self.racket = racket
         self.blocks = blocks
+        self.combo = 0
 
     def start(self):
         self.velocity = [3, -3]
@@ -62,17 +64,23 @@ class Ball(Sprite):
             self.rect.top = block.rect.bottom + 1
             return
 
-
     def update(self):
         self.rect.move_ip(*self.velocity)
         if self.rect.colliderect(self.racket.rect):
+            self.combo = 0
             self.collider(self.racket)
 
         hits = pygame.sprite.spritecollide(self, self.blocks, False)
 
         if len(hits)>0:
             self.collider(hits[0])
-            self.blocks.remove(hits[0])
+            if hits[0].hit():
+                self.combo += 1
+                pygame.event.post(pygame.event.Event(pygame.USEREVENT,
+                                                     {'type': 'score',
+                                                      'score': self.combo*10
+                                                      }))
+                self.blocks.remove(hits[0])
 
         if self.rect.top < 50:
             self.velocity[1] *= -1
@@ -111,5 +119,23 @@ class Racket(Sprite):
             pass
         else:
             self.rect.move_ip(self.velocity, 0)
+
+class Score(Sprite):
+    def __init__(self, score=0):
+        Sprite.__init__(self)
+        self.image = pygame.Surface([180, 50])
+        self.rect = self.image.get_rect()
+        self.rect.bottom = 600
+        self.score = score
+        self.font = pygame.font.Font(None, 48)
+        self.update()
+
+    def update(self, score=0):
+        self.image.fill(pygame.Color("black"))
+        self.score += score
+        text = self.font.render(str(self.score), True, pygame.Color("white"))
+        rect = text.get_rect()
+        rect.right = 180
+        self.image.blit(text, rect)
 
 
