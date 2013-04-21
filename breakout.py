@@ -15,18 +15,23 @@ def render_text(s, fontsize):
 
 def exit_game():
     exit()
+    
+def rounder(number):
+    result = int(round(number))
+    return result
 
 class Options():
     def __init__(self, res, opts):
+        self.res = res
         self._width = res[0]
-        self._fontsize = 50
+        self._fontsize = rounder(self.res[0]/20)
         self.selected = 0
-        self.surf = pygame.Surface(res)
+        self.surf = pygame.Surface(self.res)
         self.text = []
         self.opts = opts
 
         for opt in opts:
-            self.text.append(render_text(opt[0], 50))
+            self.text.append(render_text(opt[0], rounder(self.res[0]/20)))
 
     def run(self):
         self.running = True
@@ -66,14 +71,14 @@ def nop():
     pass
 
 
-def menu(screen, clock):
+def menu(screen, clock, res):
     mainmenu = [
             ["START GAME", 'play'],
             ["SELECT LEVEL", nop],
             ["OPTIONS", nop],
             ["QUIT", exit_game]
             ]
-    o = Options((600,400), mainmenu)
+    o = Options((res[0], res[1]), mainmenu)
 
     ismenu = True
     while ismenu:
@@ -93,26 +98,26 @@ def menu(screen, clock):
             if (event.type == KEYDOWN) and (event.key == K_RETURN):
                 selected = o.select()
                 if selected == 'play':
-                    breakout(screen, clock)
+                    breakout(screen, clock, res)
                 else:
                     selected()
         clock.tick(30)
 
 
-def breakout(screen, clock):
-    game = pygame.Surface((600,600))
-    racket = Racket('white', (380, 560))
+def breakout(screen, clock, res):
+    #game = pygame.Surface((res[0]*0.75,res[1]))
+    racket = Racket('yellow', (res[0]*0.475, res[1]-40), res)
 
     blocks = []
     for i in xrange(0, 6):
         for j in xrange(0, 14):
-            blocks.append(Block(1, (randint(0,255),randint(0,255),randint(0,255)), (i,j)))
+            blocks.append(Block(1, (randint(0,255),randint(0,255),randint(0,255)), (i,j), res))
 
-    score = Score()
+    score = Score(res)
 
-    lives = Lives()
+    lives = Lives(res)
 
-    ball = Ball("yellow", (380, 550), racket, blocks)
+    ball = Ball("yellow", (res[0]*0.475, res[1]-50), racket, blocks, res)
 
     keymap = {
             pygame.K_SPACE: [ball.start, nop],
@@ -123,11 +128,12 @@ def breakout(screen, clock):
     isrunning = True
 
     while isrunning:
-        bg = pygame.Surface((800,600))
+        bg = pygame.Surface((res[0],res[1]))
         bg.fill(pygame.Color("black"))
-        pygame.draw.line(bg, pygame.Color("white"), (190,50), (190,600), 5)
-        pygame.draw.line(bg, pygame.Color("white"), (610,50), (610,600), 5)
-        pygame.draw.line(bg, pygame.Color("white"), (190,50), (610,50), 5)
+        linethickness = rounder(res[0]/160)
+        pygame.draw.line(bg, pygame.Color("white"), (res[0]*0.2375-linethickness, res[0]/16), (res[0]*0.2375-linethickness,res[1]), linethickness)
+        pygame.draw.line(bg, pygame.Color("white"), (res[0]*0.7625+linethickness, res[0]/16), (res[0]*0.7625+linethickness, res[1]), linethickness)
+        pygame.draw.line(bg, pygame.Color("white"), (res[0]*0.2375-linethickness, (res[0]/16 + linethickness*0.4)), (res[0]*0.7625+linethickness, (res[0]/16 + linethickness*0.4)), linethickness)
         screen.blit(bg, (0,0))
 
         sprites = pygame.sprite.Group([racket, ball, blocks, score, lives])
@@ -171,7 +177,7 @@ def main():
     clock = pygame.time.Clock()
     screen = pygame.display.set_mode(res)
 
-    menu(screen, clock)
+    menu(screen, clock, res)
 
 if __name__ == '__main__':
     main()
