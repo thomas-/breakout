@@ -23,7 +23,7 @@ class Block(Sprite):
 
 
 class Ball(Sprite):
-    def __init__(self, color, position, racket, blocks, res):
+    def __init__(self, color, position, racket, blocks, blockcount, res):
         Sprite.__init__(self)
         self.res = res
         self.size = self.res[1]/100
@@ -34,6 +34,7 @@ class Ball(Sprite):
         self.velocity = [0,0]
         self.racket = racket
         self.blocks = blocks
+        self.blockcount = blockcount
         self.dead = True
         self.combo = 0
 
@@ -88,12 +89,14 @@ class Ball(Sprite):
         if len(hits)>0:
             self.collider(hits[0])
             if hits[0].hit():
+                self.blockcount -= 1
                 self.combo += 1
                 pygame.event.post(pygame.event.Event(pygame.USEREVENT,
                                                      {'event': 'score',
                                                       'score': self.combo*10
                                                       }))
                 self.blocks.remove(hits[0])
+                
 
         if self.rect.top <= ((self.res[0]/16) + (self.res[0]/160)):
             self.velocity[1] *= -1

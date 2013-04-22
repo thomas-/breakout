@@ -14,6 +14,13 @@ def render_text(s, fontsize):
     font = pygame.font.Font(None, fontsize)
     text = font.render(s, True, pygame.Color("white"))
     return text
+    
+def screen_message(text, screen, res):
+    screen_message = render_text(text, int(round(res[0]*0.1)))
+    screen_message_rect  = screen_message.get_rect()
+    screen_message_rect.center = (res[0]/2, res[1]/4)
+    screen.blit(screen_message, screen_message_rect)
+    pygame.display.flip()
 
 def exit_game():
     exit()
@@ -107,19 +114,27 @@ def menu(screen, clock, res):
 
 
 def breakout(screen, clock, res):
-    #game = pygame.Surface((res[0]*0.75,res[1]))
+
+    blockcount = 0
+    levelcount = 1
+
+    level_loader(levelcount, screen, res)
+    
+    # game = pygame.Surface((res[0]*0.75,res[1]))
+    
     racket = Racket('yellow', (res[0]*0.475, res[1]-40), res)
-
+    
     blocks = []
-    for i in xrange(0, 6):
-        for j in xrange(0, 14):
-            blocks.append(Block(1, (randint(5,250),randint(5,250),randint(5,250)), (i,j), res))
-
+    for i in xrange(0, 1):
+        for j in xrange(0, 1):            
+            blocks.append(Block(1, (randint(5,240),randint(5,240),randint(5,240)), (i,j), res))
+            blockcount += 1
+            
     score = Score(res)
 
     lives = Lives(res)
 
-    ball = Ball("yellow", (res[0]*0.475, res[1]-45), racket, blocks, res)
+    ball = Ball("yellow", (res[0]*0.475, res[1]-45), racket, blocks, blockcount, res)
 
     keymap = {
             pygame.K_SPACE: [ball.start, nop],
@@ -130,14 +145,16 @@ def breakout(screen, clock, res):
     isrunning = True
 
     while isrunning:
+        
         bg = pygame.Surface((res[0],res[1]))
         bg.fill(pygame.Color("black"))
+        
         linethickness = rounder(res[0]/160)
         pygame.draw.line(bg, pygame.Color("white"), (res[0]*0.2375-linethickness, res[0]/16), (res[0]*0.2375-linethickness,res[1]), linethickness)
         pygame.draw.line(bg, pygame.Color("white"), (res[0]*0.7625+linethickness, res[0]/16), (res[0]*0.7625+linethickness, res[1]), linethickness)
         pygame.draw.line(bg, pygame.Color("white"), (res[0]*0.2375-linethickness, (res[0]/16 + linethickness*0.4)), (res[0]*0.7625+linethickness, (res[0]/16 + linethickness*0.4)), linethickness)
         screen.blit(bg, (0,0))
-
+        
         sprites = pygame.sprite.Group([racket, ball, blocks, score, lives])
 
         sprites.update()
@@ -159,19 +176,29 @@ def breakout(screen, clock, res):
                 elif event.event == 'lives':
                     lives.update(event.lives)
                     if lives.lives == 0:
-                        gameover = render_text("Game Over!!!", int(round(res[0]*0.1)))
-                        gameover_rect  = gameover.get_rect()
-                        gameover_rect.center = (res[0]/2, res[1]/4)
-                        screen.blit(gameover, gameover_rect)
-                        pygame.display.flip()
+                        screen_message("Game over!!!", screen, res)
                         time.sleep(3)
                         menu(screen, clock, res)
                 else:
                   print event
-                
+        
+        if ball.blockcount == 0:
+            screen_message("Level complete", screen, res)
+            levelcount += 1
+            level_loader(levelcount, screen, res)
+                      
         clock.tick(60)
 
 
+def level_loader(levelcount, screen, res):
+        bg = pygame.Surface((res[0],res[1]))
+        bg.fill(pygame.Color("black"))
+        screen.blit(bg, (0,0))
+        pygame.display.flip()
+        
+        screen_message("Level " + str(levelcount), screen, res)
+        time.sleep(1)
+        
 def main():
     parser = argparse.ArgumentParser(description=
             "A pygame implementation of Breakout")
