@@ -4,6 +4,8 @@ import argparse
 from sys import exit
 from random import randint
 
+import time
+
 import pygame
 from pygame.locals import *
 from sprites import Ball, Racket, Block, Score, Lives
@@ -111,13 +113,13 @@ def breakout(screen, clock, res):
     blocks = []
     for i in xrange(0, 6):
         for j in xrange(0, 14):
-            blocks.append(Block(1, (randint(0,255),randint(0,255),randint(0,255)), (i,j), res))
+            blocks.append(Block(1, (randint(5,250),randint(5,250),randint(5,250)), (i,j), res))
 
     score = Score(res)
 
     lives = Lives(res)
 
-    ball = Ball("yellow", (res[0]*0.475, res[1]-50), racket, blocks, res)
+    ball = Ball("yellow", (res[0]*0.475, res[1]-45), racket, blocks, res)
 
     keymap = {
             pygame.K_SPACE: [ball.start, nop],
@@ -156,9 +158,17 @@ def breakout(screen, clock, res):
                     score.update(event.score)
                 elif event.event == 'lives':
                     lives.update(event.lives)
+                    if lives.lives == 0:
+                        gameover = render_text("Game Over!!!", int(round(res[0]*0.1)))
+                        gameover_rect  = gameover.get_rect()
+                        gameover_rect.center = (res[0]/2, res[1]/4)
+                        screen.blit(gameover, gameover_rect)
+                        pygame.display.flip()
+                        time.sleep(3)
+                        menu(screen, clock, res)
                 else:
-                    print event
-
+                  print event
+                
         clock.tick(60)
 
 

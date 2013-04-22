@@ -95,13 +95,13 @@ class Ball(Sprite):
                                                       }))
                 self.blocks.remove(hits[0])
 
-        if self.rect.top < self.res[0]/16:
+        if self.rect.top <= ((self.res[0]/16) + (self.res[0]/160)):
             self.velocity[1] *= -1
-            self.rect.top = (self.res[0]/16)+1
-        if self.rect.left < self.res[0]*0.2375:
+            self.rect.top = ((self.res[0]/16) + (self.res[0]/160))+1
+        if self.rect.left <= self.res[0]*0.2375:
             self.velocity[0] *= -1
             self.rect.left = (self.res[0]*0.2375)+1
-        if self.rect.right > self.res[0]*0.7625:
+        elif self.rect.right > self.res[0]*0.7625:
             self.velocity[0] *= -1
             self.rect.right = (self.res[0]*0.7625)-1
         if self.rect.bottom > self.res[1]:
@@ -173,12 +173,13 @@ class Lives(Sprite):
         self.lives = lives
         self.font = pygame.font.Font(None, int(round(self.res[0]*0.06)))
         self.update()
-
+        
     def update(self, lives=0):
         self.image.fill(pygame.Color("black"))
         self.lives += lives
         text = self.font.render("Lives: "+str(self.lives), True, pygame.Color("white"))
         rect = text.get_rect()
-        self.image.blit(text, rect)
+        self.image.blit(text, rect)        
+            
 
 
