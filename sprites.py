@@ -132,10 +132,10 @@ class Racket(Sprite):
         self.velocity = 0
 
     def left(self):
-        self.velocity -= 15
+        self.velocity -= 8
 
     def right(self):
-        self.velocity += 15
+        self.velocity += 8
 
     def update(self):
         if self.velocity != 0:
