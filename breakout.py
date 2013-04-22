@@ -76,31 +76,21 @@ class Options():
 
 class Breakout(object):
 
-    def __init__(self, levelcount, screen, clock, res):
+    def __init__(self, screen, clock, res):
         
         self.res = res
         self.screen = screen
         self.clock = clock
-        self.levelcount = levelcount
         
-        self.blockcount = 0
+        self.levelcount = 0
         
-        self.racket = Racket('yellow', (self.res[0]*0.475, self.res[1]-40), self.res)
+        self.racket = Racket('yellow', (self.res[0]*0.5, self.res[1]-40), self.res)
              
         self.score = Score(self.res)
 
         self.lives = Lives(self.res)
     
-        self.levelLoader()
-        
-        self.ball = Ball("yellow", (self.res[0]*0.475, self.res[1]-45), self.racket, self.blocks, self.blockcount, self.res)
-
-        self.keymap = {
-                pygame.K_SPACE: [self.ball.start, nop],
-                pygame.K_LEFT: [self.racket.left, self.racket.right],
-                pygame.K_RIGHT: [self.racket.right, self.racket.left]
-                }
-
+        self.levelLoader(self.levelcount)
 
     def run(self):
         
@@ -144,12 +134,12 @@ class Breakout(object):
                     else:
                       print event
             
-            if self.ball.blockcount == 0 and self.levelcount < 5:
+            if self.ball.blockcount == 0 and self.levelcount < 4:
                 screen_message("Level complete", self.screen, self.res)
                 self.levelcount += 1
-                breakout = Breakout(self.levelcount, self.screen, self.clock, self.res)
-                breakout.run()
-            elif self.ball.blockcount == 0 and self.levelcount == 5:
+                self.levelLoader(self.levelcount)
+                
+            elif self.ball.blockcount == 0 and self.levelcount == 4:
                 screen_message("You win!!!", self.screen, self.res)
                 time.sleep(2)
                 menu(self.screen, self.clock, self.res)
@@ -157,7 +147,11 @@ class Breakout(object):
             self.clock.tick(60)
 
 
-    def levelLoader(self):
+    def levelLoader(self, levelcount):
+            
+            self.racket.reset()
+            self.racket.update()
+            self.blockcount = 0
             self.bg = pygame.Surface((self.res[0], self.res[1]))
             self.bg.fill(pygame.Color("black"))
             self.screen.blit(self.bg, (0,0))
@@ -165,13 +159,18 @@ class Breakout(object):
             
             screen_message("Level " + str(self.levelcount+1), self.screen, self.res)
             time.sleep(1)
-            
+  
             levels = [
-                [3, 4, 4, 10],
-                [2, 5, 3, 11],
-                [1, 5, 2, 12],
-                [0, 6, 1, 13],
-                [0, 6, 0, 14]
+                # [0, 4, 4, 10],
+                # [2, 5, 3, 11],
+                # [1, 5, 2, 12],
+                # [0, 6, 1, 13],
+                # [0, 6, 0, 14]
+                [0, 1, 0, 1],
+                [0, 1, 0, 1],
+                [0, 1, 0, 1],
+                [0, 1, 0, 1],
+                [0, 1, 0, 1]
             ]
             
             self.blocks = []
@@ -179,8 +178,18 @@ class Breakout(object):
                 for j in xrange(levels[self.levelcount][2], levels[self.levelcount][3]):            
                     self.blocks.append(Block(1, (randint(5,240),randint(5,240),randint(5,240)), (i,j), self.res))
                     self.blockcount += 1
-                
-                
+            
+            self.ball = Ball("yellow", (self.res[0]*0.475, self.res[1]-45), self.racket, self.blocks, self.blockcount, self.res)
+            
+            self.keymap = {
+                pygame.K_SPACE: [self.ball.start, nop],
+                pygame.K_LEFT: [self.racket.left, self.racket.right],
+                pygame.K_RIGHT: [self.racket.right, self.racket.left]
+                }
+            
+            self.ball.combo = 0
+            
+   
 def nop():
     pass
 
@@ -212,7 +221,7 @@ def menu(screen, clock, res):
             if (event.type == KEYDOWN) and (event.key == K_RETURN):
                 selected = o.select()
                 if selected == 'play':
-                    breakout = Breakout(0, screen, clock, res)
+                    breakout = Breakout(screen, clock, res)
                     breakout.run()
                 else:
                     selected()

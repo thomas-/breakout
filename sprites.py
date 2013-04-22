@@ -17,7 +17,6 @@ class Block(Sprite):
         self.rect.top = res[0]*0.15 + (position[0]*self.blockheight)
         self.rect.left = (res[0]+(res[0]/160))*0.2375 + (position[1]*self.blockwidth)
         self.life = life
-
     def hit(self):
         return True
 
@@ -40,7 +39,7 @@ class Ball(Sprite):
 
     def start(self):
         if self.dead:
-            self.velocity = [3, -3]
+            self.velocity = [(self.res[1]/200), -(self.res[1]/200)]
             self.dead = False
 
     def collider(self, block):
@@ -124,18 +123,19 @@ class Ball(Sprite):
 class Racket(Sprite):
     def __init__(self, color, position, res):
         Sprite.__init__(self)
+        self.position = position
         self.res = res
-        self.image = pygame.Surface([(self.res[0]/20), (self.res[0]/80)])
-        self.rect = pygame.Rect(0, 0, (self.res[0]/20), (self.res[0]/80))
+        self.image = pygame.Surface([(self.res[0]/16), (self.res[0]/80)])
+        self.rect = pygame.Rect(0, 0, (self.res[0]/16), (self.res[0]/80))
         pygame.draw.rect(self.image, pygame.Color(color), self.rect)
         self.rect.center = position
         self.velocity = 0
 
     def left(self):
-        self.velocity -= 8
+        self.velocity -= self.res[0]/100
 
     def right(self):
-        self.velocity += 8
+        self.velocity += self.res[0]/100
 
     def update(self):
         if self.velocity != 0:
@@ -145,6 +145,9 @@ class Racket(Sprite):
                 self.rect.right = self.res[0] * 0.7625
             else:
                 self.rect.move_ip(self.velocity, 0)
+                
+    def reset(self):
+        self.rect.center = self.position
 
 class Score(Sprite):
     def __init__(self, res, score=0):
