@@ -4,6 +4,8 @@ import argparse
 from sys import exit
 from random import randint
 
+import time
+
 import pygame
 from pygame.locals import *
 from sprites import Ball, Racket, Block, Score, Lives
@@ -12,21 +14,33 @@ def render_text(s, fontsize):
     font = pygame.font.Font(None, fontsize)
     text = font.render(s, True, pygame.Color("white"))
     return text
+    
+def screen_message(text, screen, res):
+    screen_message = render_text(text, int(round(res[0]*0.1)))
+    screen_message_rect  = screen_message.get_rect()
+    screen_message_rect.center = (res[0]/2, res[1]/4)
+    screen.blit(screen_message, screen_message_rect)
+    pygame.display.flip()
 
 def exit_game():
     exit()
+    
+def rounder(number):
+    result = int(round(number))
+    return result
 
 class Options():
     def __init__(self, res, opts):
+        self.res = res
         self._width = res[0]
-        self._fontsize = 50
+        self._fontsize = rounder(self.res[0]/20)
         self.selected = 0
-        self.surf = pygame.Surface(res)
+        self.surf = pygame.Surface(self.res)
         self.text = []
         self.opts = opts
 
         for opt in opts:
-            self.text.append(render_text(opt[0], 50))
+            self.text.append(render_text(opt[0], rounder(self.res[0]/20)))
 
     def run(self):
         self.running = True
@@ -60,20 +74,134 @@ class Options():
         return self.opts[self.selected][1]
 
 
+class Breakout(object):
+
+    def __init__(self, screen, clock, res):
+        
+        self.res = res
+        self.screen = screen
+        self.clock = clock
+        
+        self.levelcount = 0
+        
+        self.racket = Racket('yellow', (self.res[0]*0.5, self.res[1]-40), self.res)
+             
+        self.score = Score(self.res)
+
+        self.lives = Lives(self.res)
+    
+        self.levelLoader(self.levelcount)
+
+    def run(self):
+        
+        isrunning = True
+
+        while isrunning:
+            
+            self.bg = pygame.Surface((self.res[0],self.res[1]))
+            self.bg.fill(pygame.Color("black"))
+            
+            self.linethickness = rounder(self.res[0]/160)
+            pygame.draw.line(self.bg, pygame.Color("white"), (self.res[0]*0.2375-self.linethickness, self.res[0]/16), (self.res[0]*0.2375-self.linethickness,self.res[1]), self.linethickness)
+            pygame.draw.line(self.bg, pygame.Color("white"), (self.res[0]*0.7625+self.linethickness, self.res[0]/16), (self.res[0]*0.7625+self.linethickness, self.res[1]), self.linethickness)
+            pygame.draw.line(self.bg, pygame.Color("white"), (self.res[0]*0.2375-self.linethickness, (self.res[0]/16 + self.linethickness*0.4)), (self.res[0]*0.7625+self.linethickness, (self.res[0]/16 + self.linethickness*0.4)), self.linethickness)
+            self.screen.blit(self.bg, (0,0))
+            
+            self.sprites = pygame.sprite.Group([self.racket, self.ball, self.blocks, self.score, self.lives])
+
+            self.sprites.update()
+            self.sprites.draw(self.screen)
+            pygame.display.flip()
+            self.sprites.clear(self.screen, self.bg)
+
+            self.events = pygame.event.get()
+            for event in self.events:
+                if (event.type == QUIT) or ((event.type == KEYUP) and (event.key == K_ESCAPE)):
+                    isrunning = False
+                if (event.type == pygame.KEYDOWN) and (event.key in self.keymap):
+                    self.keymap[event.key][0]()
+                if (event.type == pygame.KEYUP) and (event.key in self.keymap):
+                    self.keymap[event.key][1]()
+                if (event.type == pygame.USEREVENT):
+                    if event.event == 'score':
+                        self.score.update(event.score)
+                    elif event.event == 'lives':
+                        self.lives.update(event.lives)
+                        if self.lives.lives == 0:
+                            screen_message("Game over!!!", self.screen, self.res)
+                            time.sleep(2)
+                            menu(self.screen, self.clock, self.res)
+                    else:
+                      print event
+            
+            if self.ball.blockcount == 0 and self.levelcount < 4:
+                screen_message("Level complete", self.screen, self.res)
+                self.levelcount += 1
+                self.levelLoader(self.levelcount)
+                
+            elif self.ball.blockcount == 0 and self.levelcount == 4:
+                screen_message("You win!!!", self.screen, self.res)
+                time.sleep(2)
+                menu(self.screen, self.clock, self.res)
+                              
+            self.clock.tick(60)
 
 
+    def levelLoader(self, levelcount):
+            
+            self.racket.reset()
+            self.racket.update()
+            self.blockcount = 0
+            self.bg = pygame.Surface((self.res[0], self.res[1]))
+            self.bg.fill(pygame.Color("black"))
+            self.screen.blit(self.bg, (0,0))
+            pygame.display.flip()
+            
+            screen_message("Level " + str(self.levelcount+1), self.screen, self.res)
+            time.sleep(1)
+  
+            levels = [
+                # [0, 4, 4, 10],
+                # [2, 5, 3, 11],
+                # [1, 5, 2, 12],
+                # [0, 6, 1, 13],
+                # [0, 6, 0, 14]
+                [0, 1, 0, 1],
+                [0, 1, 0, 1],
+                [0, 1, 0, 1],
+                [0, 1, 0, 1],
+                [0, 1, 0, 1]
+            ]
+            
+            self.blocks = []
+            for i in xrange(levels[self.levelcount][0], levels[self.levelcount][1]):
+                for j in xrange(levels[self.levelcount][2], levels[self.levelcount][3]):            
+                    self.blocks.append(Block(1, (randint(5,240),randint(5,240),randint(5,240)), (i,j), self.res))
+                    self.blockcount += 1
+            
+            self.ball = Ball("yellow", (self.res[0]*0.475, self.res[1]-45), self.racket, self.blocks, self.blockcount, self.res)
+            
+            self.keymap = {
+                pygame.K_SPACE: [self.ball.start, nop],
+                pygame.K_LEFT: [self.racket.left, self.racket.right],
+                pygame.K_RIGHT: [self.racket.right, self.racket.left]
+                }
+            
+            self.ball.combo = 0
+            
+   
 def nop():
     pass
 
 
-def menu(screen, clock):
+def menu(screen, clock, res):
     mainmenu = [
             ["START GAME", 'play'],
             ["SELECT LEVEL", nop],
             ["OPTIONS", nop],
             ["QUIT", exit_game]
             ]
-    o = Options((600,400), mainmenu)
+    o = Options((res[0], res[1]), mainmenu)
 
     ismenu = True
     while ismenu:
@@ -93,69 +221,14 @@ def menu(screen, clock):
             if (event.type == KEYDOWN) and (event.key == K_RETURN):
                 selected = o.select()
                 if selected == 'play':
-                    breakout(screen, clock)
+                    breakout = Breakout(screen, clock, res)
+                    breakout.run()
                 else:
                     selected()
         clock.tick(30)
 
 
-def breakout(screen, clock):
-    game = pygame.Surface((600,600))
-    racket = Racket('white', (380, 560))
-
-    blocks = []
-    for i in xrange(0, 6):
-        for j in xrange(0, 14):
-            blocks.append(Block(1, (randint(0,255),randint(0,255),randint(0,255)), (i,j)))
-
-    score = Score()
-
-    lives = Lives()
-
-    ball = Ball("yellow", (380, 550), racket, blocks)
-
-    keymap = {
-            pygame.K_SPACE: [ball.start, nop],
-            pygame.K_LEFT: [racket.left, racket.right],
-            pygame.K_RIGHT: [racket.right, racket.left]
-            }
-
-    isrunning = True
-
-    while isrunning:
-        bg = pygame.Surface((800,600))
-        bg.fill(pygame.Color("black"))
-        pygame.draw.line(bg, pygame.Color("white"), (190,50), (190,600), 5)
-        pygame.draw.line(bg, pygame.Color("white"), (610,50), (610,600), 5)
-        pygame.draw.line(bg, pygame.Color("white"), (190,50), (610,50), 5)
-        screen.blit(bg, (0,0))
-
-        sprites = pygame.sprite.Group([racket, ball, blocks, score, lives])
-
-        sprites.update()
-        sprites.draw(screen)
-        pygame.display.flip()
-        sprites.clear(screen, bg)
-
-        events = pygame.event.get()
-        for event in events:
-            if (event.type == QUIT) or ((event.type == KEYUP) and (event.key == K_ESCAPE)):
-                isrunning = False
-            if (event.type == pygame.KEYDOWN) and (event.key in keymap):
-                keymap[event.key][0]()
-            if (event.type == pygame.KEYUP) and (event.key in keymap):
-                keymap[event.key][1]()
-            if (event.type == pygame.USEREVENT):
-                if event.event == 'score':
-                    score.update(event.score)
-                elif event.event == 'lives':
-                    lives.update(event.lives)
-                else:
-                    print event
-
-        clock.tick(60)
-
-
+        
 def main():
     parser = argparse.ArgumentParser(description=
             "A pygame implementation of Breakout")
@@ -171,7 +244,7 @@ def main():
     clock = pygame.time.Clock()
     screen = pygame.display.set_mode(res)
 
-    menu(screen, clock)
+    menu(screen, clock, res)
 
 if __name__ == '__main__':
     main()
