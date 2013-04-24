@@ -36,10 +36,14 @@ class Ball(Sprite):
         self.blockcount = blockcount
         self.dead = True
         self.combo = 0
+        if self.res[1] > 700:
+            self.speed = self.res[1]/100
+        else:
+            self.speed = self.res[1]/200
 
     def start(self):
         if self.dead:
-            self.velocity = [(self.res[1]/200), -(self.res[1]/200)]
+            self.velocity = [self.speed, -self.speed]
             self.dead = False
 
     def collider(self, block):
