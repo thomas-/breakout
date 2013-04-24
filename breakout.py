@@ -227,8 +227,7 @@ def menu(screen, clock, res):
                     selected()
         clock.tick(30)
 
-
-        
+       
 def main():
     parser = argparse.ArgumentParser(description=
             "A pygame implementation of Breakout")
@@ -239,10 +238,19 @@ def main():
     args = vars(parser.parse_args())
     res = tuple(int(x) for x in args['resolution'].split('x'))
     fs = args['fullscreen']
+    
+    pygame.display.set_caption('Breakout - g51fse_cw')
+    if fs:
+        screen = pygame.display.set_mode((0,0), FULLSCREEN, 16)
+        info = pygame.display.Info()
+        res = info.current_w, info.current_h
+    else:
+        screen = pygame.display.set_mode((res))
+    print "Using display driver:", pygame.display.get_driver()
+    print pygame.display.Info()
 
     pygame.init()
     clock = pygame.time.Clock()
-    screen = pygame.display.set_mode(res)
 
     menu(screen, clock, res)
 
