@@ -1,3 +1,4 @@
+import math
 import pygame
 from pygame.sprite import Sprite
 
@@ -44,6 +45,9 @@ class Ball(Sprite):
         else:
             self.speed = self.res[1]/200
             self.maxspeed = self.res[1]/100
+            
+        print "maxspeed"
+        print self.maxspeed
 
     def start(self):
         if self.dead:
@@ -53,19 +57,28 @@ class Ball(Sprite):
     def collider(self, block):
         if hasattr(block, 'velocity'):
             self.velocity[0] += block.velocity * 0.25
-            if self.velocity[0] > self.maxspeed:
-                self.velocity[0] = self.maxspeed
-
-       # top
+            
+            if math.fabs(self.velocity[0]) > self.maxspeed:
+                if self.velocity[0] > 0:
+                    self.velocity[0] = self.maxspeed
+                if self.velocity[0] < 0:
+                    self.velocity[0] = -self.maxspeed
+    
+        cornerwidth = rounder(self.res[1]/160)
+        
+        
+        sidevalue = rounder(self.res[1]/400)
+        
+        # top
         if self.rect.colliderect(
-            pygame.Rect(block.rect.left, block.rect.top, block.rect.width, 1)):
+            pygame.Rect(block.rect.left, block.rect.top, block.rect.width, sidevalue)):
             self.velocity[1] *= -1
             self.rect.bottom = block.rect.top - 1
             return
 
         # bot
         elif self.rect.colliderect(
-            pygame.Rect(block.rect.left, block.rect.bottom, block.rect.width, 1)):
+            pygame.Rect(block.rect.left, block.rect.bottom - sidevalue, block.rect.width, sidevalue)):
             self.velocity[1] *= -1
             self.rect.top = block.rect.bottom + 1
             return
