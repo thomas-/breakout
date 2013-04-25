@@ -38,8 +38,10 @@ class Ball(Sprite):
         self.combo = 0
         if self.res[1] > 700:
             self.speed = self.res[1]/100
+            self.maxspeed = self.res[1]/50
         else:
             self.speed = self.res[1]/200
+            self.maxspeed = self.res[1]/100
 
     def start(self):
         if self.dead:
@@ -49,6 +51,8 @@ class Ball(Sprite):
     def collider(self, block):
         if hasattr(block, 'velocity'):
             self.velocity[0] += block.velocity * 0.25
+            if self.velocity[0] > self.maxspeed:
+                self.velocity[0] = self.maxspeed
 
         # left
         if self.rect.colliderect(
