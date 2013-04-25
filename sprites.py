@@ -44,10 +44,7 @@ class Ball(Sprite):
             self.maxspeed = self.res[1]/50
         else:
             self.speed = self.res[1]/200
-            self.maxspeed = self.res[1]/100
-            
-        print "maxspeed"
-        print self.maxspeed
+            self.maxspeed = self.res[1]/100       
 
     def start(self):
         if self.dead:
@@ -64,37 +61,80 @@ class Ball(Sprite):
                 if self.velocity[0] < 0:
                     self.velocity[0] = -self.maxspeed
     
-        cornerwidth = rounder(self.res[1]/160)
+        cornervalue = rounder(self.res[1]/160)
         
+        #top left corner
+        if self.rect.colliderect(
+            pygame.Rect(block.rect.left, block.rect.top, cornervalue, cornervalue)):
+                speed = math.hypot(self.velocity[0], self.velocity[1])
+                if self.velocity[0] >= 0:
+                    self.velocity[0] = -speed * 0.7071
+                if self.velocity[1] >= 0:
+                    self.velocity[1] = -speed * 0.7071
+                self.rect.bottom = block.rect.top -1
+                return
         
+         #top right corner
+        if self.rect.colliderect(
+            pygame.Rect(block.rect.right, block.rect.top, cornervalue, cornervalue)):
+                speed = math.hypot(self.velocity[0], self.velocity[1])
+                if self.velocity[0] <= 0:
+                    self.velocity[0] = speed * 0.7071
+                if self.velocity[1] >= 0:
+                    self.velocity[1] = -speed * 0.7071
+                self.rect.bottom = block.rect.top -1
+                return       
+
+        #bottom left corner
+        if self.rect.colliderect(
+            pygame.Rect(block.rect.left, block.rect.bottom, cornervalue, cornervalue)):
+                speed = math.hypot(self.velocity[0], self.velocity[1])
+                if self.velocity[0] >= 0:
+                    self.velocity[0] = -speed * 0.7071
+                if self.velocity[1] <= 0:
+                    self.velocity[1] = speed * 0.7071
+                self.rect.top = block.rect.bottom -1
+                return                
+
+        #bottom right corner
+        if self.rect.colliderect(
+            pygame.Rect(block.rect.right, block.rect.bottom, cornervalue, cornervalue)):
+                speed = math.hypot(self.velocity[0], self.velocity[1])
+                if self.velocity[0] <= 0:
+                    self.velocity[0] = speed * 0.7071
+                if self.velocity[1] <= 0:
+                    self.velocity[1] = speed * 0.7071
+                self.rect.top = block.rect.bottom -1
+                return 
+                
         sidevalue = rounder(self.res[1]/400)
         
         # top
         if self.rect.colliderect(
             pygame.Rect(block.rect.left, block.rect.top, block.rect.width, sidevalue)):
-            self.velocity[1] *= -1
-            self.rect.bottom = block.rect.top - 1
-            return
+                self.velocity[1] *= -1
+                self.rect.bottom = block.rect.top - 1
+                return
 
         # bot
         elif self.rect.colliderect(
             pygame.Rect(block.rect.left, block.rect.bottom - sidevalue, block.rect.width, sidevalue)):
-            self.velocity[1] *= -1
-            self.rect.top = block.rect.bottom + 1
-            return
+                self.velocity[1] *= -1
+                self.rect.top = block.rect.bottom + 1
+                return
 
             
         # left
         if self.rect.collidepoint((block.rect.left, block.position[1])):
-            self.velocity[0] *= -1
-            self.rect.right = block.rect.left - 1
-            return
+                self.velocity[0] *= -1
+                self.rect.right = block.rect.left - 1
+                return
 
         # right
         elif self.rect.collidepoint((block.rect.right, block.position[1])):
-            self.velocity[0] *= -1
-            self.rect.left = block.rect.right + 1
-            return
+                self.velocity[0] *= -1
+                self.rect.left = block.rect.right + 1
+                return
 
     def update(self):
         if self.dead:
