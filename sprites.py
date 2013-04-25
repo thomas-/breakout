@@ -13,6 +13,7 @@ class Block(Sprite):
         self.blockheight = self.blockwidth/2
         self.image = pygame.Surface((self.blockwidth-(self.blockwidth/30),self.blockheight-(self.blockheight/15)))
         self.image.fill(color)
+        self.position = position
         self.rect = self.image.get_rect()
         self.rect.top = res[0]*0.15 + (position[0]*self.blockheight)
         self.rect.left = (res[0]+(res[0]/160))*0.2375 + (position[1]*self.blockwidth)
@@ -55,21 +56,7 @@ class Ball(Sprite):
             if self.velocity[0] > self.maxspeed:
                 self.velocity[0] = self.maxspeed
 
-        # left
-        if self.rect.colliderect(
-            pygame.Rect(block.rect.left, block.rect.top, 1, block.rect.height)):
-            self.velocity[0] *= -1
-            self.rect.right = block.rect.left - 1
-            return
-
-        # right
-        if self.rect.colliderect(
-            pygame.Rect(block.rect.right, block.rect.top, 1, block.rect.width)):
-            self.velocity[0] *= -1
-            self.rect.left = block.rect.right + 1
-            return
-
-        # top
+       # top
         if self.rect.colliderect(
             pygame.Rect(block.rect.left, block.rect.top, block.rect.width, 1)):
             self.velocity[1] *= -1
@@ -77,10 +64,23 @@ class Ball(Sprite):
             return
 
         # bot
-        if self.rect.colliderect(
+        elif self.rect.colliderect(
             pygame.Rect(block.rect.left, block.rect.bottom, block.rect.width, 1)):
             self.velocity[1] *= -1
             self.rect.top = block.rect.bottom + 1
+            return
+
+            
+        # left
+        if self.rect.collidepoint((block.rect.left, block.position[1])):
+            self.velocity[0] *= -1
+            self.rect.right = block.rect.left - 1
+            return
+
+        # right
+        elif self.rect.collidepoint((block.rect.right, block.position[1])):
+            self.velocity[0] *= -1
+            self.rect.left = block.rect.right + 1
             return
 
     def update(self):
