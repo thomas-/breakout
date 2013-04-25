@@ -118,6 +118,7 @@ class Breakout(object):
             for event in self.events:
                 if (event.type == QUIT) or ((event.type == KEYUP) and (event.key == K_ESCAPE)):
                     isrunning = False
+                    
                 if (event.type == pygame.KEYDOWN) and (event.key in self.keymap):
                     self.keymap[event.key][0]()
                 if (event.type == pygame.KEYUP) and (event.key in self.keymap):
@@ -134,12 +135,12 @@ class Breakout(object):
                     else:
                       print event
             
-            if self.ball.blockcount == 0 and self.levelcount < 4:
+            if len(self.blocks) == 0 and self.levelcount < 4:
                 screen_message("Level complete", self.screen, self.res)
                 self.levelcount += 1
                 self.levelLoader(self.levelcount)
                 
-            elif self.ball.blockcount == 0 and self.levelcount == 4:
+            elif len(self.blocks) == 0 and self.levelcount == 4:
                 screen_message("You win!!!", self.screen, self.res)
                 time.sleep(2)
                 menu(self.screen, self.clock, self.res)
@@ -151,7 +152,6 @@ class Breakout(object):
             
             self.racket.reset()
             self.racket.update()
-            self.blockcount = 0
             self.bg = pygame.Surface((self.res[0], self.res[1]))
             self.bg.fill(pygame.Color("black"))
             self.screen.blit(self.bg, (0,0))
@@ -177,9 +177,8 @@ class Breakout(object):
             for i in xrange(levels[self.levelcount][0], levels[self.levelcount][1]):
                 for j in xrange(levels[self.levelcount][2], levels[self.levelcount][3]):            
                     self.blocks.append(Block(1, (randint(5,240),randint(5,240),randint(5,240)), (i,j), self.res))
-                    self.blockcount += 1
             
-            self.ball = Ball("yellow", (self.res[0]*0.475, self.res[1]-45), self.racket, self.blocks, self.blockcount, self.res)
+            self.ball = Ball("yellow", (self.res[0]*0.475, self.res[1]-45), self.racket, self.blocks, self.res)
             
             self.keymap = {
                 pygame.K_SPACE: [self.ball.start, nop],
@@ -224,7 +223,7 @@ def menu(screen, clock, res):
                     breakout = Breakout(screen, clock, res)
                     breakout.run()
                 else:
-                    selected()
+                    selected()                
         clock.tick(30)
 
        

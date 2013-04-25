@@ -24,7 +24,7 @@ class Block(Sprite):
 
 
 class Ball(Sprite):
-    def __init__(self, color, position, racket, blocks, blockcount, res):
+    def __init__(self, color, position, racket, blocks, res):
         Sprite.__init__(self)
         self.res = res
         self.position = position
@@ -36,7 +36,6 @@ class Ball(Sprite):
         self.velocity = [0,0]
         self.racket = racket
         self.blocks = blocks
-        self.blockcount = blockcount
         self.dead = True
         self.combo = 0
         if self.res[1] > 700:
@@ -68,9 +67,9 @@ class Ball(Sprite):
             pygame.Rect(block.rect.left, block.rect.top, cornervalue, cornervalue)):
                 speed = math.hypot(self.velocity[0], self.velocity[1])
                 if self.velocity[0] >= 0:
-                    self.velocity[0] = -speed * 0.7071
+                    self.velocity[0] = -speed * .7071
                 if self.velocity[1] >= 0:
-                    self.velocity[1] = -speed * 0.7071
+                    self.velocity[1] = -speed * .7071
                 self.rect.bottom = block.rect.top -1
                 return
         
@@ -79,9 +78,9 @@ class Ball(Sprite):
             pygame.Rect(block.rect.right, block.rect.top, cornervalue, cornervalue)):
                 speed = math.hypot(self.velocity[0], self.velocity[1])
                 if self.velocity[0] <= 0:
-                    self.velocity[0] = speed * 0.7071
+                    self.velocity[0] = speed * .7071
                 if self.velocity[1] >= 0:
-                    self.velocity[1] = -speed * 0.7071
+                    self.velocity[1] = -speed * .7071
                 self.rect.bottom = block.rect.top -1
                 return       
 
@@ -90,9 +89,9 @@ class Ball(Sprite):
             pygame.Rect(block.rect.left, block.rect.bottom, cornervalue, cornervalue)):
                 speed = math.hypot(self.velocity[0], self.velocity[1])
                 if self.velocity[0] >= 0:
-                    self.velocity[0] = -speed * 0.7071
+                    self.velocity[0] = -speed * .7071
                 if self.velocity[1] <= 0:
-                    self.velocity[1] = speed * 0.7071
+                    self.velocity[1] = speed * .7071
                 self.rect.top = block.rect.bottom -1
                 return                
 
@@ -101,9 +100,9 @@ class Ball(Sprite):
             pygame.Rect(block.rect.right, block.rect.bottom, cornervalue, cornervalue)):
                 speed = math.hypot(self.velocity[0], self.velocity[1])
                 if self.velocity[0] <= 0:
-                    self.velocity[0] = speed * 0.7071
+                    self.velocity[0] = speed * .7071
                 if self.velocity[1] <= 0:
-                    self.velocity[1] = speed * 0.7071
+                    self.velocity[1] = speed * .7071
                 self.rect.top = block.rect.bottom -1
                 return 
                 
@@ -146,11 +145,30 @@ class Ball(Sprite):
             self.collider(self.racket)
 
         hits = pygame.sprite.spritecollide(self, self.blocks, False)
-
-        if len(hits)>0:
+                
+        if len(hits) >=2:
+            if hits[0].rect.y == hits[1].rect.y:
+                self.velocity[1] *= -1
+                self.rect.top = hits[0].rect.bottom + 1
+            
+            else:
+                if self.velocity[0] > 0:
+                    self.rect.right = hits[0].rect.left - 1
+                else:
+                    self.rect.left = hits[0].rect.right + 1
+                self.velocity[0] *= -1
+              
+            for block in hits:
+                pygame.event.post(pygame.event.Event(pygame.USEREVENT,
+                                                     {'event': 'score',
+                                                      'score': len(hits)*10
+                                                      }))
+                self.blocks.remove(block)
+            
+        
+        if len(hits) == 1:
             self.collider(hits[0])
             if hits[0].hit():
-                self.blockcount -= 1
                 self.combo += 1
                 pygame.event.post(pygame.event.Event(pygame.USEREVENT,
                                                      {'event': 'score',
