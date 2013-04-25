@@ -25,6 +25,7 @@ class Ball(Sprite):
     def __init__(self, color, position, racket, blocks, blockcount, res):
         Sprite.__init__(self)
         self.res = res
+        self.position = position
         self.size = self.res[1]/100
         self.image = pygame.Surface((self.size, self.size))
         pygame.draw.circle(self.image, pygame.Color(color), ((self.size/2), (self.size/2)), (self.size/2))
@@ -127,6 +128,11 @@ class Ball(Sprite):
                                                 {'event': 'lives',
                                                 'lives': -1
                                                 }))
+        self.reset()
+        self.racket.reset()
+                                                       
+    def reset(self):
+        self.rect.center = self.position
 
 class Racket(Sprite):
     def __init__(self, color, position, res):
