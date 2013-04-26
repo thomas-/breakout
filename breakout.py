@@ -98,8 +98,8 @@ class Breakout(object):
 
         while isrunning:
             
-            self.bg = pygame.Surface((self.res[0],self.res[1]))
-            self.bg.fill(pygame.Color("black"))
+            self.bg = pygame.image.load('bg.bmp')
+            pygame.transform.scale(self.bg ,(self.res[0], self.res[1]))
             
             self.linethickness = rounder(self.res[0]/160)
             pygame.draw.line(self.bg, pygame.Color("white"), (self.res[0]*0.2375-self.linethickness, self.res[0]/16), (self.res[0]*0.2375-self.linethickness,self.res[1]), self.linethickness)

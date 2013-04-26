@@ -238,39 +238,31 @@ class Score(Sprite):
     def __init__(self, res, score=0):
         Sprite.__init__(self)
         self.res = res
-        self.image = pygame.Surface([(self.res[0]*0.225), (self.res[0]/16)])
-        self.rect = self.image.get_rect()
-        self.rect.bottom = self.res[1]
-        self.score = score
         self.font = pygame.font.Font(None, int(round(self.res[0]*0.06)))
+        self.score = score
         self.update()
 
     def update(self, score=0):
-        self.image.fill(pygame.Color("black"))
         self.score += score
-        text = self.font.render(str(self.score), True, pygame.Color("white"))
-        rect = text.get_rect()
-        rect.right = self.res[0]*0.225
-        self.image.blit(text, rect)
+        self.image = self.font.render(str(self.score), True, pygame.Color("white"))
+        self.rect = self.image.get_rect()
+        self.rect.right = self.res[0]*0.225
+        self.rect.bottom = self.res[1]
 
 class Lives(Sprite):
     def __init__(self, res, lives=3):
         Sprite.__init__(self)
         self.res = res
-        self.image = pygame.Surface([(self.res[0]*0.225), (self.res[0]/16)])
-        self.rect = self.image.get_rect()
-        self.rect.bottom = self.res[1]
-        self.rect.right = self.res[0]
-        self.lives = lives
         self.font = pygame.font.Font(None, int(round(self.res[0]*0.06)))
+        self.lives = lives
         self.update()
         
     def update(self, lives=0):
-        self.image.fill(pygame.Color("black"))
         self.lives += lives
-        text = self.font.render("Lives: "+str(self.lives), True, pygame.Color("white"))
-        rect = text.get_rect()
-        self.image.blit(text, rect)        
+        self.image = self.font.render("Lives: "+str(self.lives), True, pygame.Color("white"))
+        self.rect = self.image.get_rect()
+        self.rect.left = self.res[0]*0.775    
+        self.rect.bottom = self.res[1]   
             
 
 
