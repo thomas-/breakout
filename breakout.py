@@ -61,7 +61,6 @@ class Options():
             self.surf.blit(text, (x,y))
 
     def draw(self, screen):
-#        screen.blit(self.select, (0, self.selected*1.5))
         screen.blit(self.surf, (0,0))
 
     def up(self):
@@ -194,10 +193,13 @@ def nop():
 
 
 def menu(screen, clock, res):
+    
+    menu_position = 1
+    
     mainmenu = [
             ["START GAME", 'play'],
             ["SELECT LEVEL", nop],
-            ["OPTIONS", nop],
+            ["HIGH SCORES", nop],
             ["QUIT", exit_game]
             ]
     o = Options((res[0], res[1]), mainmenu)
@@ -213,10 +215,12 @@ def menu(screen, clock, res):
                 exit_game()
             if (event.type == KEYUP) and (event.key == K_ESCAPE):
                 exit_game()
-            if (event.type == KEYDOWN) and (event.key == K_UP):
+            if (event.type == KEYDOWN) and (event.key == K_UP) and menu_position > 1:
                 o.up()
-            if (event.type == KEYDOWN) and (event.key == K_DOWN):
+                menu_position -= 1
+            if (event.type == KEYDOWN) and (event.key == K_DOWN) and menu_position < 4:
                 o.down()
+                menu_position += 1
             if (event.type == KEYDOWN) and (event.key == K_RETURN):
                 selected = o.select()
                 if selected == 'play':
