@@ -1,6 +1,7 @@
 import math
 import pygame
 from pygame.sprite import Sprite
+from random import randint
 
 def rounder(number):
     result = int(round(number))
@@ -37,6 +38,7 @@ class Ball(Sprite):
         self.racket = racket
         self.blocks = blocks
         self.dead = True
+        self.isReset = False
         self.combo = 0
         if self.res[1] > 700:
             self.speed = self.res[1]/100
@@ -65,7 +67,7 @@ class Ball(Sprite):
                 
             # print "AFTER BLOCK: velocity[0] = " + repr(self.velocity[0]) + "  velocity[1] = " + repr(self.velocity[1])
             
-        cornervalue = rounder(self.res[1]/160)
+        cornervalue = 5
         
         #top left corner
         if self.rect.colliderect(
@@ -111,7 +113,7 @@ class Ball(Sprite):
                 self.rect.top = block.rect.bottom -1
                 return 
                 
-        sidevalue = rounder(self.res[1]/400)
+        sidevalue = 2
         
         # top
         if self.rect.colliderect(
@@ -180,7 +182,6 @@ class Ball(Sprite):
                                                       'score': self.combo*10
                                                       }))
                 self.blocks.remove(hits[0])
-                
 
         if self.rect.top <= ((self.res[0]/16) + (self.res[0]/160)):
             self.velocity[1] *= -1
@@ -209,6 +210,7 @@ class Ball(Sprite):
                                                        
     def reset(self):
         self.rect.center = self.position
+        self.isReset = False
 
 class Racket(Sprite):
     def __init__(self, color, position, res):
@@ -269,5 +271,32 @@ class Lives(Sprite):
         self.rect.left = self.res[0]*0.775    
         self.rect.bottom = self.res[1]   
             
-
-
+class Powerup(Sprite):
+        
+        def __init__ (self, type, res):
+            Sprite.__init__(self)
+            self.res = res
+            self.size = self.res[1]/50
+            self.type = type
+            self.collected = False
+            self.countdown = 1
+            linethickness = rounder(self.res[0]/160)
+                
+            if type == 'bigpaddle':
+                self.countdown = 60 * 25
+                self.imagecolor = 'blue' 
+            
+            self.image = pygame.Surface((self.size, self.size))
+            pygame.draw.circle(self.image, pygame.Color(self.imagecolor), ((self.size/2), (self.size/2)), (self.size/2))
+            self.rect = self.image.get_rect()
+            width = rounder(self.res[0] * 0.2375 + linethickness)
+            height = rounder(self.res[0] * 0.7625 - linethickness)
+            distance = rounder(self.res[0]/16 + linethickness)
+            self.rect.center = randint(width, height), distance
+            
+        def update(self):
+            self.rect.y += rounder(self.res[0]/400)
+            if self.rect.y > self.res[1]:
+                return False
+            return True
+            

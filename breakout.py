@@ -2,13 +2,13 @@
 
 import argparse
 from sys import exit
-from random import randint
+from random import randint, uniform
 
 import time
 
 import pygame
 from pygame.locals import *
-from sprites import Ball, Racket, Block, Score, Lives
+from sprites import Ball, Racket, Block, Score, Lives, Powerup
 
 def render_text(s, fontsize):
     font = pygame.font.Font(None, fontsize)
@@ -81,38 +81,51 @@ class Breakout(object):
         self.screen = screen
         self.clock = clock
         
+        self.bg = pygame.image.load('bg.bmp')
+        pygame.transform.scale(self.bg ,(self.res[0], self.res[1]))
+        self.linethickness = rounder(self.res[0]/160)
+        pygame.draw.line(self.bg, pygame.Color("white"), (self.res[0]*0.2375-self.linethickness, self.res[0]/16), (self.res[0]*0.2375-self.linethickness,self.res[1]), self.linethickness)
+        pygame.draw.line(self.bg, pygame.Color("white"), (self.res[0]*0.7625+self.linethickness, self.res[0]/16), (self.res[0]*0.7625+self.linethickness, self.res[1]), self.linethickness)
+        pygame.draw.line(self.bg, pygame.Color("white"), (self.res[0]*0.2375-self.linethickness, (self.res[0]/16 + self.linethickness*0.4)), (self.res[0]*0.7625+self.linethickness, (self.res[0]/16 + self.linethickness*0.4)), self.linethickness)
+        self.screen.blit(self.bg, (0,0))
+        pygame.display.flip()
+        
         self.levelcount = 0
         
+        self.sprites = pygame.sprite.RenderUpdates()
+        
         self.racket = Racket('yellow', (self.res[0]*0.5, self.res[1]-40), self.res)
-             
+        
         self.score = Score(self.res)
-
+        
         self.lives = Lives(self.res)
-    
-        self.levelLoader(self.levelcount)
+
+        self.currentpowerup = None
+        self.powerupdrop = 60 * 10
+        
 
     def run(self):
         
+        self.levelLoader(self.levelcount)
+        self.sprites = pygame.sprite.RenderUpdates([self.racket, self.score, self.lives])
         isrunning = True
 
         while isrunning:
             
-            self.bg = pygame.image.load('bg.bmp')
-            pygame.transform.scale(self.bg ,(self.res[0], self.res[1]))
-            
-            self.linethickness = rounder(self.res[0]/160)
-            pygame.draw.line(self.bg, pygame.Color("white"), (self.res[0]*0.2375-self.linethickness, self.res[0]/16), (self.res[0]*0.2375-self.linethickness,self.res[1]), self.linethickness)
-            pygame.draw.line(self.bg, pygame.Color("white"), (self.res[0]*0.7625+self.linethickness, self.res[0]/16), (self.res[0]*0.7625+self.linethickness, self.res[1]), self.linethickness)
-            pygame.draw.line(self.bg, pygame.Color("white"), (self.res[0]*0.2375-self.linethickness, (self.res[0]/16 + self.linethickness*0.4)), (self.res[0]*0.7625+self.linethickness, (self.res[0]/16 + self.linethickness*0.4)), self.linethickness)
-            self.screen.blit(self.bg, (0,0))
-            
-            self.sprites = pygame.sprite.Group([self.racket, self.ball, self.blocks, self.score, self.lives])
+            self.blocknball = pygame.sprite.RenderUpdates([self.blocks, self.ball])
 
+            self.managePowerups()
+            
+            self.blocknball.update()
+            self.blocknball.draw(self.screen)
+            
             self.sprites.update()
             self.sprites.draw(self.screen)
+            
             pygame.display.flip()
             self.sprites.clear(self.screen, self.bg)
-
+            self.blocknball.clear(self.screen, self.bg)
+            
             self.events = pygame.event.get()
             for event in self.events:
                 if (event.type == QUIT) or ((event.type == KEYUP) and (event.key == K_ESCAPE)):
@@ -137,28 +150,29 @@ class Breakout(object):
             if len(self.blocks) == 0 and self.levelcount < 4:
                 screen_message("Level complete", self.screen, self.res)
                 self.levelcount += 1
+                time.sleep(1)
+                self.screen.blit(self.bg, (0,0))
+                pygame.display.flip() 
                 self.levelLoader(self.levelcount)
                 
             elif len(self.blocks) == 0 and self.levelcount == 4:
                 screen_message("You win!!!", self.screen, self.res)
                 time.sleep(2)
                 menu(self.screen, self.clock, self.res)
-                              
-            self.clock.tick(60)
+            
+            self.clock.tick(self.res[1]/10)
 
 
     def levelLoader(self, levelcount):
             
             self.racket.reset()
             self.racket.update()
-            self.bg = pygame.Surface((self.res[0], self.res[1]))
-            self.bg.fill(pygame.Color("black"))
-            self.screen.blit(self.bg, (0,0))
-            pygame.display.flip()
             
             screen_message("Level " + str(self.levelcount+1), self.screen, self.res)
             time.sleep(1)
-  
+            self.screen.blit(self.bg, (0,0))
+            pygame.display.flip()            
+            
             levels = [
                 [0, 4, 4, 10],
                 [2, 5, 3, 11],
@@ -177,7 +191,9 @@ class Breakout(object):
                 for j in xrange(levels[self.levelcount][2], levels[self.levelcount][3]):            
                     self.blocks.append(Block(1, (randint(5,240),randint(5,240),randint(5,240)), (i,j), self.res))
             
-            self.ball = Ball("yellow", (self.res[0]*0.475, self.res[1]-45), self.racket, self.blocks, self.res)
+            
+            
+            self.ball = Ball("yellow", (self.res[0]*0.475, self.res[1]-45), self.racket, self.blocks, self.res) 
             
             self.keymap = {
                 pygame.K_SPACE: [self.ball.start, nop],
@@ -187,6 +203,25 @@ class Breakout(object):
             
             self.ball.combo = 0
             
+    def managePowerups(self):
+        
+        if self.currentpowerup is None:
+            if not self.ball.isReset:
+                self.powerupdrop -= 1
+                
+                if self.powerupdrop <= 0:
+                    
+                    droppercentages = [
+                    (100, 'bigpaddle')
+                    ]
+                    
+                    choice = uniform(0, 100)
+                    for chance, type in droppercentages:
+                        if choice <= chance:
+                            self.currentpowerup = Powerup(type, self.res)
+                            self.sprites.add(self.currentpowerup)
+                            break
+        return    
    
 def nop():
     pass
