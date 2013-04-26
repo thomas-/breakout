@@ -54,12 +54,17 @@ class Ball(Sprite):
         if hasattr(block, 'velocity'):
             self.velocity[0] += block.velocity * 0.25
             
+            # print "ORIGINAL: velocity[0] = " + repr(self.velocity[0]) + "  velocity[1] = " + repr(self.velocity[1])
+            
             if math.fabs(self.velocity[0]) > self.maxspeed:
                 if self.velocity[0] > 0:
                     self.velocity[0] = self.maxspeed
                 if self.velocity[0] < 0:
                     self.velocity[0] = -self.maxspeed
-    
+            # print "Maxspeed block"
+                
+            # print "AFTER BLOCK: velocity[0] = " + repr(self.velocity[0]) + "  velocity[1] = " + repr(self.velocity[1])
+            
         cornervalue = rounder(self.res[1]/160)
         
         #top left corner
@@ -134,7 +139,7 @@ class Ball(Sprite):
                 self.velocity[0] *= -1
                 self.rect.left = block.rect.right + 1
                 return
-
+        
     def update(self):
         if self.dead:
             self.rect.center = (self.racket.rect.center[0], self.racket.rect.top - 10)
