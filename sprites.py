@@ -40,11 +40,11 @@ class Ball(Sprite):
         self.dead = True
         self.combo = 0
         if self.res[1] > 700:
-            self.speed = self.res[1]/150
-            self.maxspeed = self.res[1]/50
+            self.speed = rounder(self.res[1]/150)
+            self.maxspeed = rounder(self.res[1]/50)
         else:
-            self.speed = self.res[1]/200
-            self.maxspeed = self.res[1]/100       
+            self.speed = rounder(self.res[1]/200)
+            self.maxspeed = rounder(self.res[1]/100)
 
     def start(self):
         if self.dead:
@@ -55,16 +55,24 @@ class Ball(Sprite):
         if hasattr(block, 'velocity'):
             self.velocity[0] += block.velocity * 0.25
             
-            # print "ORIGINAL: velocity[0] = " + repr(self.velocity[0]) + "  velocity[1] = " + repr(self.velocity[1])
+            #print "ORIGINAL: velocity[0] = " + repr(self.velocity[0]) + "  velocity[1] = " + repr(self.velocity[1])
             
             if math.fabs(self.velocity[0]) > self.maxspeed:
                 if self.velocity[0] > 0:
                     self.velocity[0] = self.maxspeed
+                #print "Maxspeed block"
                 if self.velocity[0] < 0:
                     self.velocity[0] = -self.maxspeed
-            # print "Maxspeed block"
+                #print "Maxspeed block"
+            elif math.fabs(self.velocity[0]) < self.speed:
+                if self.velocity[0] > 0:
+                    self.velocity[0] = self.speed
+                #print "Minspeed block"
+                if self.velocity[0] < 0:
+                    self.velocity[0] = -self.speed
+                #print "Minspeed block"            
                 
-            # print "AFTER BLOCK: velocity[0] = " + repr(self.velocity[0]) + "  velocity[1] = " + repr(self.velocity[1])
+            #print "AFTER BLOCK: velocity[0] = " + repr(self.velocity[0]) + "  velocity[1] = " + repr(self.velocity[1])
             
         cornervalue = 5
         
