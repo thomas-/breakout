@@ -118,7 +118,7 @@ class Breakout(object):
                     # self.sprites.remove(sprite)
                     
             self.blocknball = pygame.sprite.RenderUpdates([self.blocks, self.ball])
-
+            
             self.managePowerups()
             
             self.blocknball.update()
@@ -211,7 +211,7 @@ class Breakout(object):
     def managePowerups(self):
         
         if self.currentpowerup is None:
-            if not self.ball.isReset:
+            if not self.ball.dead:
                 self.powerupdrop -= 1
                 
                 if self.powerupdrop <= 0:
@@ -248,6 +248,19 @@ class Breakout(object):
                     self.sprites.remove(self.currentpowerup)
                     self.currentpowerup = None
                     self.powerupdrop = randint(60*10, 60*20)
+        
+        elif self.currentpowerup.countdown > 0:
+            self.currentpowerup.countdown -= 1
+        
+        else:
+            if self.currentpowerup is not None:
+                if self.currentpowerup.type:
+                    print "shrink"
+                
+                self.currentpowerup = None
+                
+                self.powerupdrop = randint(60*30, 60*60)
+            
 def nop():
     pass
 

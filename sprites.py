@@ -38,7 +38,6 @@ class Ball(Sprite):
         self.racket = racket
         self.blocks = blocks
         self.dead = True
-        self.isReset = False
         self.combo = 0
         if self.res[1] > 700:
             self.speed = self.res[1]/150
@@ -210,7 +209,6 @@ class Ball(Sprite):
                                                        
     def reset(self):
         self.rect.center = self.position
-        self.isReset = False
 
 class Racket(Sprite):
     def __init__(self, color, position, res):
