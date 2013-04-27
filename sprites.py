@@ -221,11 +221,13 @@ class Ball(Sprite):
 class Racket(Sprite):
     def __init__(self, color, position, res):
         Sprite.__init__(self)
+        self.color = color
         self.position = position
         self.res = res
+        self.linethickness = rounder(self.res[0]/160)
         self.image = pygame.Surface([(self.res[0]/16), (self.res[0]/80)])
         self.rect = pygame.Rect(0, 0, (self.res[0]/16), (self.res[0]/80))
-        pygame.draw.rect(self.image, pygame.Color(color), self.rect)
+        pygame.draw.rect(self.image, pygame.Color(self.color), self.rect)
         self.rect.center = position
         self.velocity = 0
 
@@ -243,9 +245,37 @@ class Racket(Sprite):
                 self.rect.right = self.res[0] * 0.7625
             else:
                 self.rect.move_ip(self.velocity, 0)
-                
+    
+    def grow(self):
+        print "growing"
+        position = self.rect.center
+        
+        self.image = pygame.Surface([(self.res[0]/10), (self.res[0]/80)])
+        self.rect = pygame.Rect(0, 0, (self.res[0]/10), (self.res[0]/80))
+        pygame.draw.rect(self.image, pygame.Color(self.color), self.rect)
+        self.rect.center = position
+        
+        if self.rect.right > (self.res[0]*0.7625):
+            self.rect.right = self.res[0]*0.7625
+        if self.rect.left < (self.res[0]*0.2375 ):
+            self.rect.left = self.res[0]*0.2375
+    
+    def shrink(self):
+        print "shrinking"
+        position = self.rect.center
+        self.image = pygame.Surface([(self.res[0]/16), (self.res[0]/80)])
+        self.rect = pygame.Rect(0, 0, (self.res[0]/16), (self.res[0]/80))
+        pygame.draw.rect(self.image, pygame.Color(self.color), self.rect)
+        self.rect.center = position
+        
+        if self.rect.right > (self.res[0]*0.7625):
+            self.rect.right = self.res[0]*0.7625
+        if self.rect.left < (self.res[0]*0.2375 ):
+            self.rect.left = self.res[0]*0.2375
+        
     def reset(self):
         self.rect.center = self.position
+        self.shrink()
 
 class Score(Sprite):
     def __init__(self, res, score=0):

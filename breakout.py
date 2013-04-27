@@ -101,13 +101,13 @@ class Breakout(object):
         self.lives = Lives(self.res)
 
         self.currentpowerup = None
-        self.powerupdrop = 60 * 10
+        self.powerupdrop = 60 * 1
         
 
     def run(self):
         
         self.levelLoader(self.levelcount)
-        self.sprites = pygame.sprite.RenderUpdates([self.racket, self.score, self.lives])
+        self.sprites = pygame.sprite.RenderUpdates([self.score, self.lives])
         isrunning = True
 
         while isrunning:
@@ -117,7 +117,12 @@ class Breakout(object):
                 # if alive is False:
                     # self.sprites.remove(sprite)
                     
-            self.blocknball = pygame.sprite.RenderUpdates([self.blocks, self.ball])
+            self.blocknball = pygame.sprite.RenderUpdates([self.blocks, self.ball, self.racket])
+            
+            if self.currentpowerup == None:
+                print "drop counter: "  + repr(self.powerupdrop)
+            else:
+                print "powerup counter: " + repr(self.currentpowerup.countdown) 
             
             self.managePowerups()
             
@@ -171,7 +176,6 @@ class Breakout(object):
     def levelLoader(self, levelcount):
             
             self.racket.reset()
-            self.racket.update()
             
             screen_message("Level " + str(self.levelcount+1), self.screen, self.res)
             time.sleep(1)
@@ -217,8 +221,8 @@ class Breakout(object):
                 if self.powerupdrop <= 0:
                     
                     droppercentages = [
-                    (10, '1up'),
-                    (55, 'slowball'),
+                    # (10, '1up'),
+                    # (55, 'slowball'),
                     (100, 'bigracket')
                     ]
                     
@@ -233,11 +237,11 @@ class Breakout(object):
         if not self.currentpowerup.collected:
             if self.racket.rect.colliderect(self.currentpowerup.rect):
                 if self.currentpowerup.type == 'bigracket':
-                    print "big racket"
-                elif self.currentpowerup.type == 'slowball':
-                    print "slow ball"
-                elif self.currentpowerup.type == '1up':
-                    print "add one life"
+                    self.racket.grow()
+                # elif self.currentpowerup.type == 'slowball':
+                    # print "slow ball"
+                # elif self.currentpowerup.type == '1up':
+                    # print "add one life"
         
                 self.currentpowerup.collected = True
                 self.sprites.remove(self.currentpowerup)
@@ -254,8 +258,8 @@ class Breakout(object):
         
         else:
             if self.currentpowerup is not None:
-                if self.currentpowerup.type:
-                    print "shrink"
+                if self.currentpowerup.type == 'bigracket':
+                    self.racket.shrink()
                 
                 self.currentpowerup = None
                 
