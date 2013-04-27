@@ -41,7 +41,7 @@ class Ball(Sprite):
         self.isReset = False
         self.combo = 0
         if self.res[1] > 700:
-            self.speed = self.res[1]/100
+            self.speed = self.res[1]/150
             self.maxspeed = self.res[1]/50
         else:
             self.speed = self.res[1]/200
@@ -282,9 +282,14 @@ class Powerup(Sprite):
             self.countdown = 1
             linethickness = rounder(self.res[0]/160)
                 
-            if type == 'bigpaddle':
+            if type == 'bigracket':
                 self.countdown = 60 * 25
-                self.imagecolor = 'blue' 
+                self.imagecolor = 'blue'
+            elif type == 'slowball':
+                self.countdown = 60 * 10
+                self.imagecolor = 'yellow'
+            elif type == '1up':
+                self.imagecolor = 'green'
             
             self.image = pygame.Surface((self.size, self.size))
             pygame.draw.circle(self.image, pygame.Color(self.imagecolor), ((self.size/2), (self.size/2)), (self.size/2))
