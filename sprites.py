@@ -328,7 +328,14 @@ class Lives(Sprite):
         self.image = self.font.render("Lives: "+str(self.lives), True, pygame.Color("white"))
         self.rect = self.image.get_rect()
         self.rect.left = self.res[0]*0.775    
-        self.rect.bottom = self.res[1]   
+        self.rect.bottom = self.res[1]
+    
+    def addLife(self):
+        print "added a life"
+        pygame.event.post(pygame.event.Event(pygame.USEREVENT,
+                                                {'event': 'lives',
+                                                'lives': +1
+                                                }))        
             
 class Powerup(Sprite):
         

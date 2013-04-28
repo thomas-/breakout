@@ -114,10 +114,10 @@ class Breakout(object):
                     
             self.blocknball = pygame.sprite.RenderUpdates([self.blocks, self.ball, self.racket])
             
-            if self.currentpowerup == None:
-                print "drop counter: "  + repr(self.powerupdrop)
-            else:
-                print "powerup counter: " + repr(self.currentpowerup.countdown)
+            # if self.currentpowerup == None:
+                # print "drop counter: "  + repr(self.powerupdrop)
+            # else:
+                # print "powerup counter: " + repr(self.currentpowerup.countdown)
 
             self.managePowerups()
             
@@ -220,9 +220,9 @@ class Breakout(object):
                 if self.powerupdrop <= 0:
                     
                     droppercentages = [
-                    # (10, '1up'),
-                    (100, 'slowball')
-                    # (100, 'bigracket')
+                    (10, '1up'),
+                    (55, 'slowball'),
+                    (100, 'bigracket')
                     ]
                     
                     choice = uniform(0, 100)
@@ -240,8 +240,8 @@ class Breakout(object):
                     self.racket.grow()
                 elif self.currentpowerup.type == 'slowball':
                     self.ball.slowDown()
-                # elif self.currentpowerup.type == '1up':
-                    # print "add one life"
+                elif self.currentpowerup.type == '1up':
+                    self.lives.addLife()
         
                 self.currentpowerup.collected = True
                 self.sprites.remove(self.currentpowerup)
