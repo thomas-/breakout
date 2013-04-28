@@ -101,7 +101,7 @@ class Breakout(object):
         self.lives = Lives(self.res)
 
         self.currentpowerup = None
-        self.powerupdrop = 60 * 15
+        self.powerupdrop = 60 * 1
         
 
     def run(self):
@@ -221,8 +221,8 @@ class Breakout(object):
                     
                     droppercentages = [
                     # (10, '1up'),
-                    (55, 'slowball'),
-                    (100, 'bigracket')
+                    (100, 'slowball')
+                    # (100, 'bigracket')
                     ]
                     
                     choice = uniform(0, 100)
@@ -238,8 +238,8 @@ class Breakout(object):
             if self.racket.rect.colliderect(self.currentpowerup.rect):
                 if self.currentpowerup.type == 'bigracket':
                     self.racket.grow()
-                # elif self.currentpowerup.type == 'slowball':
-                    # print "slow ball"
+                elif self.currentpowerup.type == 'slowball':
+                    self.ball.slowDown()
                 # elif self.currentpowerup.type == '1up':
                     # print "add one life"
         
@@ -261,6 +261,8 @@ class Breakout(object):
 
                 if self.currentpowerup.type == 'bigracket':
                     self.racket.shrink()
+                elif self.currentpowerup.type == 'slowball':
+                    self.ball.speedUp()
                 
                 self.currentpowerup = None
                 
@@ -269,7 +271,6 @@ class Breakout(object):
             
 def nop():
     pass
-
 
 def menu(screen, clock, res):
     

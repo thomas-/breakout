@@ -205,6 +205,30 @@ class Ball(Sprite):
                 self.velocity[1] = 0
                 self.killed()
 
+    def slowDown(self):
+        if self.res[1] > 700:
+            self.velocity[0] = rounder(self.res[1]/300)
+            self.velocity[1] = rounder(self.res[1]/300)
+            self.speed = rounder(self.res[1]/300)
+            self.maxspeed = rounder(self.res[1]/300)
+        else:
+            self.velocity[0] = rounder(self.res[1]/400)
+            self.velocity[1] = rounder(self.res[1]/400)
+            self.speed  = rounder(self.res[1]/400)
+            self.maxspeed = rounder(self.res[1]/400)
+            
+    def speedUp(self):
+
+        self.velocity[0] = self.velocity[0] * 2
+        self.velocity[1] = self.velocity [1] * 2    
+        
+        if self.res[1] > 700:
+            self.speed = rounder(self.res[1]/150)
+            self.maxspeed = rounder(self.res[1]/50)
+        else:
+            self.speed = rounder(self.res[1]/200)
+            self.maxspeed = rounder(self.res[1]/100)           
+                
     def killed(self):
         self.combo = 0
         self.dead = True
