@@ -314,7 +314,7 @@ class Score(Sprite):
         self.rect.bottom = self.res[1]
 
 class Lives(Sprite):
-    def __init__(self, res, lives=1):
+    def __init__(self, res, lives=3):
         Sprite.__init__(self)
         self.res = res
         self.font = pygame.font.Font(None, int(round(self.res[0]*0.06)))
@@ -381,7 +381,7 @@ class NameSprite(Sprite):
         self.reRender()
         
     def addLetter(self, letter):
-            if len(self.text) < 10:
+            if len(self.text) < 15:
                 self.text += str(letter)
                 self.reRender()
         

@@ -1,6 +1,6 @@
 #!/usr/bin/env python2.7
 
-import argparse
+import argparse, os
 from sys import exit
 from random import randint, uniform
 
@@ -16,7 +16,7 @@ def render_text(s, fontsize):
     return text
     
 def screen_message(text, screen, res):
-    screen_message = render_text(text, int(round(res[0]*0.1)))
+    screen_message = render_text(text, rounder(res[0]*0.1))
     screen_message_rect  = screen_message.get_rect()
     screen_message_rect.center = (res[0]/2, res[1]/4)
     screen.blit(screen_message, screen_message_rect)
@@ -133,7 +133,7 @@ class Breakout(object):
             self.events = pygame.event.get()
             for event in self.events:
                 if (event.type == QUIT) or ((event.type == KEYUP) and (event.key == K_ESCAPE)):
-                    isrunning = False
+                    menu(self.screen, self.clock, self.res)
                     
                 if (event.type == pygame.KEYDOWN) and (event.key in self.keymap):
                     self.keymap[event.key][0]()
@@ -160,7 +160,7 @@ class Breakout(object):
             elif len(self.blocks) == 0 and self.levelcount == 4:
                 screen_message("You win!!!", self.screen, self.res)
                 time.sleep(2)
-                menu(self.screen, self.clock, self.res)
+                self.gameOver()
             
             self.clock.tick(self.res[1]/10)
 
@@ -270,44 +270,116 @@ class Breakout(object):
         time.sleep(1)
         self.screen.blit(self.bg, (0,0))
         pygame.display.flip()
-        screen_message("Enter Name:", self.screen, self.res)
         
-        self.enteringname = True
-
-        self.name = NameSprite(self.res, (self.res[0]/2, self.res[1]/3), int(round(self.res[0]*0.1)))
-        self.namesprite = pygame.sprite.RenderUpdates(self.name)
+        highscores = self.parseHighScores()
         
-        while self.enteringname:
+        if self.score.score > int(highscores[-1][1]):
+            screen_message("Enter Name:", self.screen, self.res)
+            
+            self.enteringname = True
 
-            for event in pygame.event.get():
-                if event.key == pygame.K_BACKSPACE:
-                    self.name.removeLetter()
-                elif event.key == pygame.K_RETURN:
-                    self.nameEntered()
-                    self.enteringname = False
-                    self.isrunning = False
-                elif event.type == pygame.KEYDOWN:
-                    try:
-                        char = chr(event.key)
-                        if str(char) in 'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789-_':
-                             self.name.addLetter(char)
-                    except:
-                        pass
-                
-                self.namesprite.update()
-                self.namesprite.draw(self.screen)
-                pygame.display.flip()
-                self.namesprite.clear(self.screen, self.bg)
- 
+            self.name = NameSprite(self.res, (self.res[0]/2, self.res[1]/3), rounder(self.res[0]*0.1))
+            self.namesprite = pygame.sprite.RenderUpdates(self.name)
+            
+            while self.enteringname:
+
+                for event in pygame.event.get():
+                    if event.key == pygame.K_BACKSPACE:
+                        self.name.removeLetter()
+                    elif event.key == pygame.K_RETURN:
+                        self.nameEntered()
+                    elif event.type == pygame.KEYDOWN:
+                        try:
+                            char = chr(event.key)
+                            if str(char) in 'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789-_':
+                                 self.name.addLetter(char)
+                        except:
+                            pass
+                    
+                    self.namesprite.update()
+                    self.namesprite.draw(self.screen)
+                    pygame.display.flip()
+                    self.namesprite.clear(self.screen, self.bg)
+        else:
+            self.showHighScores(highscores)
+            
     def nameEntered(self):
-        print self.name.text
-        print self.score.score
-     
-    
-         
+        username = self.name.text
+        
+        self.screen.blit(self.bg, (0,0))
+        pygame.display.flip
+        
+        highscores = self.parseHighScores()
+        
+        newscores = []
+        
+        for name, score in highscores:
+            if self.score.score > int(score):
+                newscores.append((username, str(self.score.score)))
+                self.score.score = 0
+            newscores.append((name, score))
+        newscores = newscores[0:10]
+        
+        highscorefile = 'highscores.txt'
+        f = open(highscorefile, 'w')
+        for name, score in newscores:
+            f.write("%s: %s\n" % (name, score))
+        f.close()
+        
+        self.showHighScores(newscores) 
+        
+    def parseHighScores(self):
+        highscorefile = 'highscores.txt'
+        if os.path.isfile(highscorefile):
+            f = open(highscorefile, 'r')
+            lines = f.readlines()
+            scores = []
+            
+            for line in lines:
+                scores.append( line.strip().split(':') )
+            return scores 
+        else:
+            f = open (highscorefile, 'w')
+            f.write("""JJJ:0000
+III:0000
+HHH:0000
+GGG:0000
+FFF:0000
+EEE:0000
+DDD:0000
+CCC:0000
+BBB:0000
+AAA:0000""")
+            f.close()
+            return self.parseHighScores()
+
+    def showHighScores(self, scores):
+        font = pygame.font.Font(None, rounder(self.res[0]*0.05))
+        color = pygame.Color("white")
+        
+        for i in range(len(scores)):
+            name, score = scores[i]
+            nameimage = font.render(name, True, color)
+            namerect = nameimage.get_rect()
+            namerect.left = rounder(self.res[0]*0.3)
+            namerect.centery = rounder(self.res[0]/8)+(i*(namerect.height + rounder(self.res[0]/40)))
+            self.screen.blit(nameimage, namerect)
+            
+            scoreimage = font.render(score, True, color)
+            scorerect = scoreimage.get_rect()
+            scorerect.right = rounder(self.res[0]*0.7)
+            scorerect.centery = namerect.centery
+            self.screen.blit(scoreimage, scorerect)
+        
+        pygame.display.flip()
+        time.sleep(5)
+        
+        menu(self.screen, self.clock, self.res)
+            
 def nop():
     pass
 
+    
 def menu(screen, clock, res):
     
     menu_position = 1
@@ -315,11 +387,11 @@ def menu(screen, clock, res):
     mainmenu = [
             ["START GAME", 'play'],
             ["SELECT LEVEL", nop],
-            ["HIGH SCORES", nop],
+            ["HIGH SCORES", 'highscores'],
             ["QUIT", exit_game]
             ]
     o = Options((res[0], res[1]), mainmenu)
-
+    
     ismenu = True
     while ismenu:
         o.update()
@@ -342,6 +414,9 @@ def menu(screen, clock, res):
                 if selected == 'play':
                     breakout = Breakout(screen, clock, res)
                     breakout.run()
+                if selected == 'highscores':
+                    breakout = Breakout(screen, clock, res)
+                    breakout.showHighScores(breakout.parseHighScores())
                 else:
                     selected()                
         clock.tick(30)
