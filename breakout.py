@@ -101,7 +101,7 @@ class Breakout(object):
         self.lives = Lives(self.res)
 
         self.currentpowerup = None
-        self.powerupdrop = 60 * 1
+        self.powerupdrop = 60 * 15
         
 
     def run(self):
@@ -111,19 +111,14 @@ class Breakout(object):
         isrunning = True
 
         while isrunning:
-            
-            # for sprite in self.sprites:
-                # alive = sprite.update()
-                # if alive is False:
-                    # self.sprites.remove(sprite)
                     
             self.blocknball = pygame.sprite.RenderUpdates([self.blocks, self.ball, self.racket])
             
             if self.currentpowerup == None:
                 print "drop counter: "  + repr(self.powerupdrop)
             else:
-                print "powerup counter: " + repr(self.currentpowerup.countdown) 
-            
+                print "powerup counter: " + repr(self.currentpowerup.countdown)
+
             self.managePowerups()
             
             self.blocknball.update()
@@ -214,6 +209,10 @@ class Breakout(object):
             
     def managePowerups(self):
         
+        if self.ball.dead and self.currentpowerup is not None:
+            if self.currentpowerup.collected is True:
+                self.currentpowerup.countdown = 0 
+                
         if self.currentpowerup is None:
             if not self.ball.dead:
                 self.powerupdrop -= 1
@@ -222,7 +221,7 @@ class Breakout(object):
                     
                     droppercentages = [
                     # (10, '1up'),
-                    # (55, 'slowball'),
+                    (55, 'slowball'),
                     (100, 'bigracket')
                     ]
                     
@@ -235,6 +234,7 @@ class Breakout(object):
             return
         
         if not self.currentpowerup.collected:
+            
             if self.racket.rect.colliderect(self.currentpowerup.rect):
                 if self.currentpowerup.type == 'bigracket':
                     self.racket.grow()
@@ -251,19 +251,21 @@ class Breakout(object):
                 if not alive:
                     self.sprites.remove(self.currentpowerup)
                     self.currentpowerup = None
-                    self.powerupdrop = randint(60*10, 60*20)
+                    self.powerupdrop = randint(60*5, 60*15)
         
         elif self.currentpowerup.countdown > 0:
-            self.currentpowerup.countdown -= 1
+            self.currentpowerup.countdown -= 1      
         
         else:
             if self.currentpowerup is not None:
+
                 if self.currentpowerup.type == 'bigracket':
                     self.racket.shrink()
                 
                 self.currentpowerup = None
                 
-                self.powerupdrop = randint(60*30, 60*60)
+                self.powerupdrop = randint(60*15, 60*25)
+                
             
 def nop():
     pass

@@ -275,7 +275,6 @@ class Racket(Sprite):
         
     def reset(self):
         self.rect.center = self.position
-        self.shrink()
 
 class Score(Sprite):
     def __init__(self, res, score=0):
