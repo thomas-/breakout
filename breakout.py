@@ -8,7 +8,7 @@ import time
 
 import pygame
 from pygame.locals import *
-from sprites import Ball, Racket, Block, Score, Lives, Powerup
+from sprites import Ball, Racket, Block, Score, Lives, Powerup, NameSprite
 
 def render_text(s, fontsize):
     font = pygame.font.Font(None, fontsize)
@@ -92,7 +92,7 @@ class Breakout(object):
         
         self.levelcount = 0
         
-        self.sprites = pygame.sprite.RenderUpdates()
+        # self.sprites = pygame.sprite.RenderUpdates()
         
         self.racket = Racket('yellow', (self.res[0]*0.5, self.res[1]-40), self.res)
         
@@ -101,24 +101,22 @@ class Breakout(object):
         self.lives = Lives(self.res)
 
         self.currentpowerup = None
-        self.powerupdrop = 60 * 1
+        self.powerupdrop = 60 * 15
+        
+        self.enteringname = False
         
 
     def run(self):
         
         self.levelLoader(self.levelcount)
+        self.isrunning = True
+        
         self.sprites = pygame.sprite.RenderUpdates([self.score, self.lives])
-        isrunning = True
-
-        while isrunning:
-                    
+        
+        while self.isrunning:
+            
             self.blocknball = pygame.sprite.RenderUpdates([self.blocks, self.ball, self.racket])
             
-            # if self.currentpowerup == None:
-                # print "drop counter: "  + repr(self.powerupdrop)
-            # else:
-                # print "powerup counter: " + repr(self.currentpowerup.countdown)
-
             self.managePowerups()
             
             self.blocknball.update()
@@ -130,6 +128,7 @@ class Breakout(object):
             pygame.display.flip()
             self.sprites.clear(self.screen, self.bg)
             self.blocknball.clear(self.screen, self.bg)
+            
             
             self.events = pygame.event.get()
             for event in self.events:
@@ -146,9 +145,7 @@ class Breakout(object):
                     elif event.event == 'lives':
                         self.lives.update(event.lives)
                         if self.lives.lives == 0:
-                            screen_message("Game over!!!", self.screen, self.res)
-                            time.sleep(2)
-                            menu(self.screen, self.clock, self.res)
+                            self.gameOver()
                     else:
                       print event
             
@@ -267,8 +264,47 @@ class Breakout(object):
                 self.currentpowerup = None
                 
                 self.powerupdrop = randint(60*15, 60*25)
+
+    def gameOver(self):
+        screen_message("Game Over!", self.screen, self.res)
+        time.sleep(1)
+        self.screen.blit(self.bg, (0,0))
+        pygame.display.flip()
+        screen_message("Enter Name:", self.screen, self.res)
+        
+        self.enteringname = True
+
+        self.name = NameSprite(self.res, (self.res[0]/2, self.res[1]/3), int(round(self.res[0]*0.1)))
+        self.namesprite = pygame.sprite.RenderUpdates(self.name)
+        
+        while self.enteringname:
+
+            for event in pygame.event.get():
+                if event.key == pygame.K_BACKSPACE:
+                    self.name.removeLetter()
+                elif event.key == pygame.K_RETURN:
+                    self.nameEntered()
+                    self.enteringname = False
+                    self.isrunning = False
+                elif event.type == pygame.KEYDOWN:
+                    try:
+                        char = chr(event.key)
+                        if str(char) in 'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789-_':
+                             self.name.addLetter(char)
+                    except:
+                        pass
                 
-            
+                self.namesprite.update()
+                self.namesprite.draw(self.screen)
+                pygame.display.flip()
+                self.namesprite.clear(self.screen, self.bg)
+ 
+    def nameEntered(self):
+        print self.name.text
+        print self.score.score
+     
+    
+         
 def nop():
     pass
 

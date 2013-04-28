@@ -206,14 +206,14 @@ class Ball(Sprite):
                 self.killed()
 
     def slowDown(self):
+    
+        self.velocity[0] = self.velocity[0] / 4
+        self.velocity[1] = self.velocity [1] / 4   
+    
         if self.res[1] > 700:
-            self.velocity[0] = rounder(self.res[1]/300)
-            self.velocity[1] = rounder(self.res[1]/300)
             self.speed = rounder(self.res[1]/300)
             self.maxspeed = rounder(self.res[1]/300)
         else:
-            self.velocity[0] = rounder(self.res[1]/400)
-            self.velocity[1] = rounder(self.res[1]/400)
             self.speed  = rounder(self.res[1]/400)
             self.maxspeed = rounder(self.res[1]/400)
             
@@ -271,7 +271,6 @@ class Racket(Sprite):
                 self.rect.move_ip(self.velocity, 0)
     
     def grow(self):
-        print "growing"
         position = self.rect.center
         
         self.image = pygame.Surface([(self.res[0]/10), (self.res[0]/80)])
@@ -285,7 +284,6 @@ class Racket(Sprite):
             self.rect.left = self.res[0]*0.2375
     
     def shrink(self):
-        print "shrinking"
         position = self.rect.center
         self.image = pygame.Surface([(self.res[0]/16), (self.res[0]/80)])
         self.rect = pygame.Rect(0, 0, (self.res[0]/16), (self.res[0]/80))
@@ -316,7 +314,7 @@ class Score(Sprite):
         self.rect.bottom = self.res[1]
 
 class Lives(Sprite):
-    def __init__(self, res, lives=3):
+    def __init__(self, res, lives=1):
         Sprite.__init__(self)
         self.res = res
         self.font = pygame.font.Font(None, int(round(self.res[0]*0.06)))
@@ -370,4 +368,31 @@ class Powerup(Sprite):
             if self.rect.y > self.res[1]:
                 return False
             return True
-            
+
+class NameSprite(Sprite):
+    
+    def __init__(self, res, position, fontsize):
+        Sprite.__init__(self)
+        self.position = position
+        self.fontsize = fontsize
+        self.text = ''
+        self.color = 'white'
+        self.font = pygame.font.Font(None, self.fontsize)
+        self.reRender()
+        
+    def addLetter(self, letter):
+            if len(self.text) < 10:
+                self.text += str(letter)
+                self.reRender()
+        
+    def removeLetter(self):
+        if len(self.text) == 1:
+            self.text = ''
+        else:
+            self.text = self.text[:-1]
+            self.reRender()
+        
+    def reRender(self):
+        self.image = self.font.render(self.text, True, pygame.Color(self.color))
+        self.rect = self.image.get_rect()
+        self.rect.center = self.position
