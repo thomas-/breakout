@@ -40,7 +40,7 @@ class Ball(Sprite):
         self.dead = True
         self.combo = 0
         if self.res[1] > 700:
-            self.speed = rounder(self.res[1]/150)
+            self.speed = rounder(self.res[1]/100)
             self.maxspeed = rounder(self.res[1]/75)
         else:
             self.speed = rounder(self.res[1]/200)
@@ -53,29 +53,30 @@ class Ball(Sprite):
             self.dead = False
 
     def collider(self, block):
+    
         if hasattr(block, 'velocity'):
             self.velocity[0] += block.velocity * 0.25
-            
-            #print "ORIGINAL: velocity[0] = " + repr(self.velocity[0]) + "  velocity[1] = " + repr(self.velocity[1])
-            
-            if math.fabs(self.velocity[0]) > self.maxspeed:
-                if self.velocity[0] > 0:
-                    self.velocity[0] = self.maxspeed
+
+        #print "ORIGINAL: velocity[0] = " + repr(rounder(self.velocity[0])) + "  velocity[1] = " + repr(rounder(self.velocity[1]))
+    
+        if math.fabs(self.velocity[0]) > self.maxspeed:
+            if self.velocity[0] > 0:
+                self.velocity[0] = self.maxspeed
                 #print "Maxspeed block"
-                if self.velocity[0] < 0:
-                    self.velocity[0] = -self.maxspeed
+            if self.velocity[0] < 0:
+                self.velocity[0] = -self.maxspeed
                 #print "Maxspeed block"
-            elif math.fabs(self.velocity[0]) < self.speed:
-                if self.velocity[0] > 0:
-                    self.velocity[0] = self.speed
+        elif math.fabs(self.velocity[0]) < self.speed:
+            if self.velocity[0] > 0:
+                self.velocity[0] = self.speed
                 #print "Minspeed block"
-                if self.velocity[0] < 0:
-                    self.velocity[0] = -self.speed
-                #print "Minspeed block"            
-                
-            #print "AFTER BLOCK: velocity[0] = " + repr(self.velocity[0]) + "  velocity[1] = " + repr(self.velocity[1])
-            
-        cornervalue = 5
+            if self.velocity[0] < 0:
+                self.velocity[0] = -self.speed
+                #print "Minspeed block"
+    
+        #print "AFTER BLOCK: velocity[0] = " + repr(rounder(self.velocity[0])) + "  velocity[1] = " + repr(rounder(self.velocity[1]))
+
+        cornervalue = 6
         
         #top left corner
         if self.rect.colliderect(
@@ -121,7 +122,7 @@ class Ball(Sprite):
                 self.rect.top = block.rect.bottom -1
                 return 
                 
-        sidevalue = 2
+        sidevalue = 3
         
         # top
         if self.rect.colliderect(
@@ -151,6 +152,7 @@ class Ball(Sprite):
                 return
         
     def update(self):
+    
         if self.dead:
             self.rect.center = (self.racket.rect.center[0], self.racket.rect.top - 10)
 
@@ -208,31 +210,30 @@ class Ball(Sprite):
 
     def slowDown(self):
     
-        self.velocity[0] = self.velocity[0] / 4
-        self.velocity[1] = self.velocity [1] / 4
+        self.velocity[0] = rounder(self.velocity[0] / 4)
+        self.velocity[1] = rounder(self.velocity [1] / 4)
         
         print "before slowDown: velocity[0] = " + repr(self.velocity[0]) + "  velocity[1] = " + repr(self.velocity[1])
         if self.res[1] > 700:
-            self.speed = rounder(self.res[1]/300)
-            self.maxspeed = rounder(self.res[1]/300)
+            self.speed = self.res[1]/300
+            self.maxspeed = self.res[1]/300
         else:
-            self.speed  = rounder(self.res[1]/400)
-            self.maxspeed = rounder(self.res[1]/400)
+            self.speed  = self.res[1]/400
+            self.maxspeed = self.res[1]/400
         print "after slowDown: velocity[0] = " + repr(self.velocity[0]) + "  velocity[1] = " + repr(self.velocity[1])
             
     def speedUp(self):
 
-        self.velocity[0] = self.velocity[0] * 2
-        self.velocity[1] = self.velocity [1] * 2    
+        self.velocity[0] = rounder(self.velocity[0] * 2)
+        self.velocity[1] = rounder(self.velocity [1] * 2)
         
         if self.res[1] > 700:
-            self.speed = rounder(self.res[1]/150)
-            self.maxspeed = rounder(self.res[1]/50)
+            self.speed = self.res[1]/100
+            self.maxspeed = self.res[1]/75
         else:
-            self.speed = rounder(self.res[1]/200)
-            self.maxspeed = rounder(self.res[1]/100)           
-        print "speedUp: velocity[0] = " + repr(self.velocity[0]) + "  velocity[1] = " + repr(self.velocity[1])
-        
+            self.speed = self.res[1]/200
+            self.maxspeed = self.res[1]/100
+
     def killed(self):
         self.combo = 0
         self.dead = True

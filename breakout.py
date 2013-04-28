@@ -112,15 +112,6 @@ class Breakout(object):
         
         self.lives = Lives(self.res)
         
-        self.ball = Ball("yellow", (self.res[0]*0.475, self.res[1]-45), self.racket, 
-                            self.levelLoader(self.levelcount), self.res) 
-        
-        self.keymap = {
-            pygame.K_SPACE: [self.ball.start, nop],
-            pygame.K_LEFT: [self.racket.left, self.racket.right],
-            pygame.K_RIGHT: [self.racket.right, self.racket.left]
-        }
-        
         self.currentpowerup = None
         self.powerupdrop = 60 * 15
         
@@ -129,25 +120,34 @@ class Breakout(object):
 
     def run(self):
         
+        self.ball = Ball("yellow", (self.res[0]*0.475, self.res[1]-45), self.racket, 
+                    self.levelLoader(self.levelcount), self.res) 
+        
+        self.keymap = {
+            pygame.K_SPACE: [self.ball.start, nop],
+            pygame.K_LEFT: [self.racket.left, self.racket.right],
+            pygame.K_RIGHT: [self.racket.right, self.racket.left]
+            }
+        
         self.isrunning = True
         
         self.sprites = pygame.sprite.RenderUpdates([self.score, self.lives, self.ball, self.racket])
         
         while self.isrunning:
             
-            self.blocknball = pygame.sprite.RenderUpdates(self.blocks)
+            self.blockimages = pygame.sprite.RenderUpdates(self.blocks)
             
             self.managePowerups()
             
-            self.blocknball.update()
-            self.blocknball.draw(self.screen)
+            self.blockimages.update()
+            self.blockimages.draw(self.screen)
             
             self.sprites.update()
             self.sprites.draw(self.screen)
             
             pygame.display.flip()
             self.sprites.clear(self.screen, self.bg)
-            self.blocknball.clear(self.screen, self.bg)
+            self.blockimages.clear(self.screen, self.bg)
             
             
             self.events = pygame.event.get()
@@ -499,25 +499,6 @@ def createScreen(screen, clock, res):
     menu(screen, clock, res) 
        
 def main():
-    # parser = argparse.ArgumentParser(description=
-            # "A pygame implementation of Breakout")
-    # parser.add_argument('-r', '--resolution',
-            # help="Resolution", default='800x600')
-    # parser.add_argument('-f', '--fullscreen',
-            # help="Fullscreen", action='store_true')
-    # args = vars(parser.parse_args())
-    # res = tuple(int(x) for x in args['resolution'].split('x'))
-    # fs = args['fullscreen']
-    
-    # pygame.display.set_caption('Breakout - g51fse_cw')
-    # if fs:
-        # screen = pygame.display.set_mode((0,0), FULLSCREEN, 16)
-        # info = pygame.display.Info()
-        # res = info.current_w, info.current_h
-    # else:
-        # screen = pygame.display.set_mode(res)
-    # print "Using display driver:", pygame.display.get_driver()
-    # print pygame.display.Info()
 
     res = (800,600)
     screen = pygame.display.set_mode(res)
