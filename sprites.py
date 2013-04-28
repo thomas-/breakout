@@ -41,7 +41,7 @@ class Ball(Sprite):
         self.combo = 0
         if self.res[1] > 700:
             self.speed = rounder(self.res[1]/150)
-            self.maxspeed = rounder(self.res[1]/50)
+            self.maxspeed = rounder(self.res[1]/75)
         else:
             self.speed = rounder(self.res[1]/200)
             self.maxspeed = rounder(self.res[1]/100)
@@ -49,6 +49,7 @@ class Ball(Sprite):
     def start(self):
         if self.dead:
             self.velocity = [self.speed, -self.speed]
+            self.combo = 0
             self.dead = False
 
     def collider(self, block):
@@ -208,14 +209,16 @@ class Ball(Sprite):
     def slowDown(self):
     
         self.velocity[0] = self.velocity[0] / 4
-        self.velocity[1] = self.velocity [1] / 4   
-    
+        self.velocity[1] = self.velocity [1] / 4
+        
+        print "before slowDown: velocity[0] = " + repr(self.velocity[0]) + "  velocity[1] = " + repr(self.velocity[1])
         if self.res[1] > 700:
             self.speed = rounder(self.res[1]/300)
             self.maxspeed = rounder(self.res[1]/300)
         else:
             self.speed  = rounder(self.res[1]/400)
             self.maxspeed = rounder(self.res[1]/400)
+        print "after slowDown: velocity[0] = " + repr(self.velocity[0]) + "  velocity[1] = " + repr(self.velocity[1])
             
     def speedUp(self):
 
@@ -228,7 +231,8 @@ class Ball(Sprite):
         else:
             self.speed = rounder(self.res[1]/200)
             self.maxspeed = rounder(self.res[1]/100)           
-                
+        print "speedUp: velocity[0] = " + repr(self.velocity[0]) + "  velocity[1] = " + repr(self.velocity[1])
+        
     def killed(self):
         self.combo = 0
         self.dead = True
@@ -241,6 +245,8 @@ class Ball(Sprite):
                                                        
     def reset(self):
         self.rect.center = self.position
+        self.velocity = [0,0]
+        self.dead = True
 
 class Racket(Sprite):
     def __init__(self, color, position, res):

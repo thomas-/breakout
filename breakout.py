@@ -53,7 +53,9 @@ class Options():
 
     def update(self):
         self.surf.fill(pygame.Color("black"))
-        pygame.draw.rect(self.surf, pygame.Color("purple"), pygame.Rect(0, (self.selected+1)*(self._fontsize), self._width, self._fontsize))
+        pygame.draw.rect(self.surf, pygame.Color("purple"), 
+            pygame.Rect(0, (self.selected+1)*(self._fontsize),
+                self._width, self._fontsize))
         y = 0
         for text in self.text:
             x = self.surf.get_width()/2 - text.get_width()/2
@@ -84,9 +86,21 @@ class Breakout(object):
         self.bg = pygame.image.load('bg.bmp')
         pygame.transform.scale(self.bg ,(self.res[0], self.res[1]))
         self.linethickness = rounder(self.res[0]/160)
-        pygame.draw.line(self.bg, pygame.Color("white"), (self.res[0]*0.2375-self.linethickness, self.res[0]/16), (self.res[0]*0.2375-self.linethickness,self.res[1]), self.linethickness)
-        pygame.draw.line(self.bg, pygame.Color("white"), (self.res[0]*0.7625+self.linethickness, self.res[0]/16), (self.res[0]*0.7625+self.linethickness, self.res[1]), self.linethickness)
-        pygame.draw.line(self.bg, pygame.Color("white"), (self.res[0]*0.2375-self.linethickness, (self.res[0]/16 + self.linethickness*0.4)), (self.res[0]*0.7625+self.linethickness, (self.res[0]/16 + self.linethickness*0.4)), self.linethickness)
+        
+        pygame.draw.line(self.bg, pygame.Color("white"),
+            (self.res[0]*0.2375-self.linethickness, self.res[0]/16),
+                (self.res[0]*0.2375-self.linethickness,self.res[1]), self.linethickness)
+                
+        pygame.draw.line(self.bg, pygame.Color("white"),
+            (self.res[0]*0.7625+self.linethickness, self.res[0]/16),
+                (self.res[0]*0.7625+self.linethickness, self.res[1]), self.linethickness)
+                
+        pygame.draw.line(self.bg, pygame.Color("white"),
+            (self.res[0]*0.2375-self.linethickness,
+                (self.res[0]/16 + self.linethickness*0.4)),
+                    (self.res[0]*0.7625+self.linethickness,
+                        (self.res[0]/16 + self.linethickness*0.4)), self.linethickness)
+                        
         self.screen.blit(self.bg, (0,0))
         pygame.display.flip()
         
@@ -97,7 +111,16 @@ class Breakout(object):
         self.score = Score(self.res)
         
         self.lives = Lives(self.res)
-
+        
+        self.ball = Ball("yellow", (self.res[0]*0.475, self.res[1]-45), self.racket, 
+                            self.levelLoader(self.levelcount), self.res) 
+        
+        self.keymap = {
+            pygame.K_SPACE: [self.ball.start, nop],
+            pygame.K_LEFT: [self.racket.left, self.racket.right],
+            pygame.K_RIGHT: [self.racket.right, self.racket.left]
+        }
+        
         self.currentpowerup = None
         self.powerupdrop = 60 * 15
         
@@ -106,14 +129,13 @@ class Breakout(object):
 
     def run(self):
         
-        self.levelLoader(self.levelcount)
         self.isrunning = True
         
-        self.sprites = pygame.sprite.RenderUpdates([self.score, self.lives])
+        self.sprites = pygame.sprite.RenderUpdates([self.score, self.lives, self.ball, self.racket])
         
         while self.isrunning:
             
-            self.blocknball = pygame.sprite.RenderUpdates([self.blocks, self.ball, self.racket])
+            self.blocknball = pygame.sprite.RenderUpdates(self.blocks)
             
             self.managePowerups()
             
@@ -143,6 +165,10 @@ class Breakout(object):
                     elif event.event == 'lives':
                         self.lives.update(event.lives)
                         if self.lives.lives == 0:
+                            screen_message("Game Over!", self.screen, self.res)
+                            time.sleep(1)
+                            self.screen.blit(self.bg, (0,0))
+                            pygame.display.flip()
                             self.gameOver()
                     else:
                       print event
@@ -152,12 +178,15 @@ class Breakout(object):
                 self.levelcount += 1
                 time.sleep(1)
                 self.screen.blit(self.bg, (0,0))
-                pygame.display.flip() 
-                self.levelLoader(self.levelcount)
+                pygame.display.flip()
+                self.ball.reset()
+                self.ball.blocks = self.levelLoader(self.levelcount)
                 
             elif len(self.blocks) == 0 and self.levelcount == 4:
                 screen_message("You win!!!", self.screen, self.res)
-                time.sleep(2)
+                time.sleep(1)
+                self.screen.blit(self.bg, (0,0))
+                pygame.display.flip()
                 self.gameOver()
             
             self.clock.tick(60)
@@ -178,29 +207,20 @@ class Breakout(object):
                 [1, 5, 2, 12],
                 [0, 6, 1, 13],
                 [0, 6, 0, 14]
-                # [0, 1, 0, 1],
-                # [0, 1, 0, 1],
-                # [0, 1, 0, 1],
-                # [0, 1, 0, 1],
-                # [0, 1, 0, 1]
+                #[0, 1, 0, 1],
+                #[0, 1, 0, 1],
+                #[0, 1, 0, 1],
+                #[0, 1, 0, 1],
+                #[0, 1, 0, 1]
             ]
             
             self.blocks = []
             for i in xrange(levels[self.levelcount][0], levels[self.levelcount][1]):
                 for j in xrange(levels[self.levelcount][2], levels[self.levelcount][3]):            
-                    self.blocks.append(Block(1, (randint(5,240),randint(5,240),randint(5,240)), (i,j), self.res))
-            
-            
-            
-            self.ball = Ball("yellow", (self.res[0]*0.475, self.res[1]-45), self.racket, self.blocks, self.res) 
-            
-            self.keymap = {
-                pygame.K_SPACE: [self.ball.start, nop],
-                pygame.K_LEFT: [self.racket.left, self.racket.right],
-                pygame.K_RIGHT: [self.racket.right, self.racket.left]
-                }
-            
-            self.ball.combo = 0
+                    self.blocks.append(Block(1, (randint(5,240),randint(5,240),randint(5,240)),
+                        (i,j), self.res))
+                        
+            return self.blocks
             
     def managePowerups(self):
         
@@ -264,10 +284,6 @@ class Breakout(object):
                 self.powerupdrop = randint(60*15, 60*25)
 
     def gameOver(self):
-        screen_message("Game Over!", self.screen, self.res)
-        time.sleep(1)
-        self.screen.blit(self.bg, (0,0))
-        pygame.display.flip()
         
         highscores = self.parseHighScores()
         
@@ -352,9 +368,10 @@ AAA:0000""")
             return self.parseHighScores()
 
     def showHighScores(self, scores):
+        
         font = pygame.font.Font(None, rounder(self.res[0]*0.05))
         color = pygame.Color("white")
-        
+            
         for i in range(len(scores)):
             name, score = scores[i]
             nameimage = font.render(name, True, color)
@@ -362,17 +379,17 @@ AAA:0000""")
             namerect.left = rounder(self.res[0]*0.3)
             namerect.centery = rounder(self.res[0]/8)+(i*(namerect.height + rounder(self.res[0]/40)))
             self.screen.blit(nameimage, namerect)
-            
+                
             scoreimage = font.render(score, True, color)
             scorerect = scoreimage.get_rect()
             scorerect.right = rounder(self.res[0]*0.7)
             scorerect.centery = namerect.centery
             self.screen.blit(scoreimage, scorerect)
-        
+            
         pygame.display.flip()
-        time.sleep(4)
+        time.sleep(3)
+        menu(self.screen, self.clock, self.res)      
         
-        menu(self.screen, self.clock, self.res)
             
 def nop():
     pass
@@ -389,7 +406,6 @@ def menu(screen, clock, res):
             ["QUIT", exit_game]
             ]
     o = Options((res[0], res[1]), mainmenu)
-    
     ismenu = True
     while ismenu:
         o.update()
@@ -418,7 +434,7 @@ def menu(screen, clock, res):
                 if selected == 'settings':
                     settings(screen, clock, res)
                 else:
-                    selected()                
+                    selected()               
         clock.tick(30)
 
 def settings(screen, clock, res):
