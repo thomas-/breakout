@@ -92,8 +92,6 @@ class Breakout(object):
         
         self.levelcount = 0
         
-        # self.sprites = pygame.sprite.RenderUpdates()
-        
         self.racket = Racket('yellow', (self.res[0]*0.5, self.res[1]-40), self.res)
         
         self.score = Score(self.res)
@@ -162,7 +160,7 @@ class Breakout(object):
                 time.sleep(2)
                 self.gameOver()
             
-            self.clock.tick(self.res[1]/10)
+            self.clock.tick(60)
 
 
     def levelLoader(self, levelcount):
@@ -372,7 +370,7 @@ AAA:0000""")
             self.screen.blit(scoreimage, scorerect)
         
         pygame.display.flip()
-        time.sleep(5)
+        time.sleep(4)
         
         menu(self.screen, self.clock, self.res)
             
@@ -386,7 +384,7 @@ def menu(screen, clock, res):
     
     mainmenu = [
             ["START GAME", 'play'],
-            ["SELECT LEVEL", nop],
+            ["SCREEN SETTINGS", 'settings'],
             ["HIGH SCORES", 'highscores'],
             ["QUIT", exit_game]
             ]
@@ -417,36 +415,100 @@ def menu(screen, clock, res):
                 if selected == 'highscores':
                     breakout = Breakout(screen, clock, res)
                     breakout.showHighScores(breakout.parseHighScores())
+                if selected == 'settings':
+                    settings(screen, clock, res)
                 else:
                     selected()                
         clock.tick(30)
 
-       
-def main():
-    parser = argparse.ArgumentParser(description=
-            "A pygame implementation of Breakout")
-    parser.add_argument('-r', '--resolution',
-            help="Resolution", default='800x600')
-    parser.add_argument('-f', '--fullscreen',
-            help="Fullscreen", action='store_true')
-    args = vars(parser.parse_args())
-    res = tuple(int(x) for x in args['resolution'].split('x'))
-    fs = args['fullscreen']
+def settings(screen, clock, res):
     
+    settings_position = 1
+    
+    settings = [
+        ["640x480", 'menu_1'],
+        ["800x600", 'menu_2'],
+        ["1024x768", 'menu_3'],
+        ["1280x800", 'menu_4'],
+        ["FULLSCREEN", 'menu_5']
+        ]
+    
+    s = Options((res[0], res[1]), settings)
+    
+    issettings = True
+    
+    while issettings:
+        s.update()
+        s.draw(screen)
+        pygame.display.flip()
+        events = pygame.event.get()
+        for event in events:
+            if (event.type == QUIT):
+                issettings = False
+            if (event.type == KEYUP) and (event.key == K_ESCAPE):
+                issettings = False
+            if (event.type == KEYDOWN) and (event.key == K_UP) and settings_position > 1:
+                s.up()
+                settings_position -= 1
+            if (event.type == KEYDOWN) and (event.key == K_DOWN) and settings_position < 5:
+                s.down()
+                settings_position += 1
+            if (event.type == KEYDOWN) and (event.key == K_RETURN):
+                selected = s.select()
+                if selected == 'menu_1':
+                    res = (640,480)
+                    createScreen(screen, clock, res)
+                elif selected == 'menu_2':
+                    res = (800,600)
+                    createScreen(screen, clock, res)
+                elif selected == 'menu_3':
+                    res = (1024,768)
+                    createScreen(screen, clock, res)
+                elif selected == 'menu_4':
+                    res = (1280,800)
+                    createScreen(screen, clock, res)
+                elif selected == 'menu_5':
+                    screen = pygame.display.set_mode((0,0), FULLSCREEN, 16)
+                    info = pygame.display.Info()
+                    res = info.current_w, info.current_h
+                else:
+                    selected()                
+        clock.tick(30)
+        
+def createScreen(screen, clock, res):
     pygame.display.set_caption('Breakout - g51fse_cw')
-    if fs:
-        screen = pygame.display.set_mode((0,0), FULLSCREEN, 16)
-        info = pygame.display.Info()
-        res = info.current_w, info.current_h
-    else:
-        screen = pygame.display.set_mode((res))
+    screen = pygame.display.set_mode(res)
     print "Using display driver:", pygame.display.get_driver()
     print pygame.display.Info()
+    menu(screen, clock, res) 
+       
+def main():
+    # parser = argparse.ArgumentParser(description=
+            # "A pygame implementation of Breakout")
+    # parser.add_argument('-r', '--resolution',
+            # help="Resolution", default='800x600')
+    # parser.add_argument('-f', '--fullscreen',
+            # help="Fullscreen", action='store_true')
+    # args = vars(parser.parse_args())
+    # res = tuple(int(x) for x in args['resolution'].split('x'))
+    # fs = args['fullscreen']
+    
+    # pygame.display.set_caption('Breakout - g51fse_cw')
+    # if fs:
+        # screen = pygame.display.set_mode((0,0), FULLSCREEN, 16)
+        # info = pygame.display.Info()
+        # res = info.current_w, info.current_h
+    # else:
+        # screen = pygame.display.set_mode(res)
+    # print "Using display driver:", pygame.display.get_driver()
+    # print pygame.display.Info()
 
+    res = (800,600)
+    screen = pygame.display.set_mode(res)
     pygame.init()
     clock = pygame.time.Clock()
 
-    menu(screen, clock, res)
+    createScreen(screen, clock, res)
 
 if __name__ == '__main__':
     main()

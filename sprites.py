@@ -329,7 +329,6 @@ class Lives(Sprite):
         self.rect.bottom = self.res[1]
     
     def addLife(self):
-        print "added a life"
         pygame.event.post(pygame.event.Event(pygame.USEREVENT,
                                                 {'event': 'lives',
                                                 'lives': +1
