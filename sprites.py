@@ -1,5 +1,7 @@
+import math
 import pygame
 from pygame.sprite import Sprite
+from random import randint
 
 def rounder(number):
     result = int(round(number))
@@ -13,6 +15,7 @@ class Block(Sprite):
         self.blockheight = self.blockwidth/2
         self.image = pygame.Surface((self.blockwidth-(self.blockwidth/30),self.blockheight-(self.blockheight/15)))
         self.image.fill(color)
+        self.position = position
         self.rect = self.image.get_rect()
         self.rect.top = res[0]*0.15 + (position[0]*self.blockheight)
         self.rect.left = (res[0]+(res[0]/160))*0.2375 + (position[1]*self.blockwidth)
@@ -22,9 +25,10 @@ class Block(Sprite):
 
 
 class Ball(Sprite):
-    def __init__(self, color, position, racket, blocks, blockcount, res):
+    def __init__(self, color, position, racket, blocks, res):
         Sprite.__init__(self)
         self.res = res
+        self.position = position
         self.size = self.res[1]/100
         self.image = pygame.Surface((self.size, self.size))
         pygame.draw.circle(self.image, pygame.Color(color), ((self.size/2), (self.size/2)), (self.size/2))
@@ -33,48 +37,122 @@ class Ball(Sprite):
         self.velocity = [0,0]
         self.racket = racket
         self.blocks = blocks
-        self.blockcount = blockcount
         self.dead = True
         self.combo = 0
+        if self.res[1] > 700:
+            self.speed = rounder(self.res[1]/100)
+            self.maxspeed = rounder(self.res[1]/75)
+        else:
+            self.speed = rounder(self.res[1]/200)
+            self.maxspeed = rounder(self.res[1]/100)
 
     def start(self):
         if self.dead:
-            self.velocity = [(self.res[1]/200), -(self.res[1]/200)]
+            self.velocity = [self.speed, -self.speed]
+            self.combo = 0
             self.dead = False
 
     def collider(self, block):
+    
         if hasattr(block, 'velocity'):
             self.velocity[0] += block.velocity * 0.25
 
-        # left
-        if self.rect.colliderect(
-            pygame.Rect(block.rect.left, block.rect.top, 1, block.rect.height)):
-            self.velocity[0] *= -1
-            self.rect.right = block.rect.left - 1
-            return
+        #print "ORIGINAL: velocity[0] = " + repr(rounder(self.velocity[0])) + "  velocity[1] = " + repr(rounder(self.velocity[1]))
+    
+        if math.fabs(self.velocity[0]) > self.maxspeed:
+            if self.velocity[0] > 0:
+                self.velocity[0] = self.maxspeed
+                #print "Maxspeed block"
+            if self.velocity[0] < 0:
+                self.velocity[0] = -self.maxspeed
+                #print "Maxspeed block"
+        elif math.fabs(self.velocity[0]) < self.speed:
+            if self.velocity[0] > 0:
+                self.velocity[0] = self.speed
+                #print "Minspeed block"
+            if self.velocity[0] < 0:
+                self.velocity[0] = -self.speed
+                #print "Minspeed block"
+    
+        #print "AFTER BLOCK: velocity[0] = " + repr(rounder(self.velocity[0])) + "  velocity[1] = " + repr(rounder(self.velocity[1]))
 
-        # right
+        cornervalue = 6
+        
+        #top left corner
         if self.rect.colliderect(
-            pygame.Rect(block.rect.right, block.rect.top, 1, block.rect.width)):
-            self.velocity[0] *= -1
-            self.rect.left = block.rect.right + 1
-            return
+            pygame.Rect(block.rect.left, block.rect.top, cornervalue, cornervalue)):
+                speed = math.hypot(self.velocity[0], self.velocity[1])
+                if self.velocity[0] >= 0:
+                    self.velocity[0] = -speed * .7071
+                if self.velocity[1] >= 0:
+                    self.velocity[1] = -speed * .7071
+                self.rect.bottom = block.rect.top -1
+                return
+        
+         #top right corner
+        if self.rect.colliderect(
+            pygame.Rect(block.rect.right, block.rect.top, cornervalue, cornervalue)):
+                speed = math.hypot(self.velocity[0], self.velocity[1])
+                if self.velocity[0] <= 0:
+                    self.velocity[0] = speed * .7071
+                if self.velocity[1] >= 0:
+                    self.velocity[1] = -speed * .7071
+                self.rect.bottom = block.rect.top -1
+                return       
 
+        #bottom left corner
+        if self.rect.colliderect(
+            pygame.Rect(block.rect.left, block.rect.bottom, cornervalue, cornervalue)):
+                speed = math.hypot(self.velocity[0], self.velocity[1])
+                if self.velocity[0] >= 0:
+                    self.velocity[0] = -speed * .7071
+                if self.velocity[1] <= 0:
+                    self.velocity[1] = speed * .7071
+                self.rect.top = block.rect.bottom -1
+                return                
+
+        #bottom right corner
+        if self.rect.colliderect(
+            pygame.Rect(block.rect.right, block.rect.bottom, cornervalue, cornervalue)):
+                speed = math.hypot(self.velocity[0], self.velocity[1])
+                if self.velocity[0] <= 0:
+                    self.velocity[0] = speed * .7071
+                if self.velocity[1] <= 0:
+                    self.velocity[1] = speed * .7071
+                self.rect.top = block.rect.bottom -1
+                return 
+                
+        sidevalue = 3
+        
         # top
         if self.rect.colliderect(
-            pygame.Rect(block.rect.left, block.rect.top, block.rect.width, 1)):
-            self.velocity[1] *= -1
-            self.rect.bottom = block.rect.top - 1
-            return
+            pygame.Rect(block.rect.left, block.rect.top, block.rect.width, sidevalue)):
+                self.velocity[1] *= -1
+                self.rect.bottom = block.rect.top - 1
+                return
 
         # bot
-        if self.rect.colliderect(
-            pygame.Rect(block.rect.left, block.rect.bottom, block.rect.width, 1)):
-            self.velocity[1] *= -1
-            self.rect.top = block.rect.bottom + 1
-            return
+        elif self.rect.colliderect(
+            pygame.Rect(block.rect.left, block.rect.bottom - sidevalue, block.rect.width, sidevalue)):
+                self.velocity[1] *= -1
+                self.rect.top = block.rect.bottom + 1
+                return
 
+            
+        # left
+        if self.rect.collidepoint((block.rect.left, block.position[1])):
+                self.velocity[0] *= -1
+                self.rect.right = block.rect.left - 1
+                return
+
+        # right
+        elif self.rect.collidepoint((block.rect.right, block.position[1])):
+                self.velocity[0] *= -1
+                self.rect.left = block.rect.right + 1
+                return
+        
     def update(self):
+    
         if self.dead:
             self.rect.center = (self.racket.rect.center[0], self.racket.rect.top - 10)
 
@@ -84,18 +162,36 @@ class Ball(Sprite):
             self.collider(self.racket)
 
         hits = pygame.sprite.spritecollide(self, self.blocks, False)
-
-        if len(hits)>0:
+                
+        if len(hits) >=2:
+            if hits[0].rect.y == hits[1].rect.y:
+                self.velocity[1] *= -1
+                self.rect.top = hits[0].rect.bottom + 1
+            
+            else:
+                if self.velocity[0] > 0:
+                    self.rect.right = hits[0].rect.left - 1
+                else:
+                    self.rect.left = hits[0].rect.right + 1
+                self.velocity[0] *= -1
+              
+            for block in hits:
+                pygame.event.post(pygame.event.Event(pygame.USEREVENT,
+                                                     {'event': 'score',
+                                                      'score': len(hits)*10
+                                                      }))
+                self.blocks.remove(block)
+            
+        
+        if len(hits) == 1:
             self.collider(hits[0])
             if hits[0].hit():
-                self.blockcount -= 1
                 self.combo += 1
                 pygame.event.post(pygame.event.Event(pygame.USEREVENT,
                                                      {'event': 'score',
                                                       'score': self.combo*10
                                                       }))
                 self.blocks.remove(hits[0])
-                
 
         if self.rect.top <= ((self.res[0]/16) + (self.res[0]/160)):
             self.velocity[1] *= -1
@@ -112,6 +208,32 @@ class Ball(Sprite):
                 self.velocity[1] = 0
                 self.killed()
 
+    def slowDown(self):
+    
+        self.velocity[0] = rounder(self.velocity[0] / 4)
+        self.velocity[1] = rounder(self.velocity [1] / 4)
+        
+        print "before slowDown: velocity[0] = " + repr(self.velocity[0]) + "  velocity[1] = " + repr(self.velocity[1])
+        if self.res[1] > 700:
+            self.speed = self.res[1]/300
+            self.maxspeed = self.res[1]/300
+        else:
+            self.speed  = self.res[1]/400
+            self.maxspeed = self.res[1]/400
+        print "after slowDown: velocity[0] = " + repr(self.velocity[0]) + "  velocity[1] = " + repr(self.velocity[1])
+            
+    def speedUp(self):
+
+        self.velocity[0] = rounder(self.velocity[0] * 2)
+        self.velocity[1] = rounder(self.velocity [1] * 2)
+        
+        if self.res[1] > 700:
+            self.speed = self.res[1]/100
+            self.maxspeed = self.res[1]/75
+        else:
+            self.speed = self.res[1]/200
+            self.maxspeed = self.res[1]/100
+
     def killed(self):
         self.combo = 0
         self.dead = True
@@ -119,15 +241,24 @@ class Ball(Sprite):
                                                 {'event': 'lives',
                                                 'lives': -1
                                                 }))
+        self.reset()
+        self.racket.reset()
+                                                       
+    def reset(self):
+        self.rect.center = self.position
+        self.velocity = [0,0]
+        self.dead = True
 
 class Racket(Sprite):
     def __init__(self, color, position, res):
         Sprite.__init__(self)
+        self.color = color
         self.position = position
         self.res = res
+        self.linethickness = rounder(self.res[0]/160)
         self.image = pygame.Surface([(self.res[0]/16), (self.res[0]/80)])
         self.rect = pygame.Rect(0, 0, (self.res[0]/16), (self.res[0]/80))
-        pygame.draw.rect(self.image, pygame.Color(color), self.rect)
+        pygame.draw.rect(self.image, pygame.Color(self.color), self.rect)
         self.rect.center = position
         self.velocity = 0
 
@@ -145,7 +276,32 @@ class Racket(Sprite):
                 self.rect.right = self.res[0] * 0.7625
             else:
                 self.rect.move_ip(self.velocity, 0)
-                
+    
+    def grow(self):
+        position = self.rect.center
+        
+        self.image = pygame.Surface([(self.res[0]/10), (self.res[0]/80)])
+        self.rect = pygame.Rect(0, 0, (self.res[0]/10), (self.res[0]/80))
+        pygame.draw.rect(self.image, pygame.Color(self.color), self.rect)
+        self.rect.center = position
+        
+        if self.rect.right > (self.res[0]*0.7625):
+            self.rect.right = self.res[0]*0.7625
+        if self.rect.left < (self.res[0]*0.2375 ):
+            self.rect.left = self.res[0]*0.2375
+    
+    def shrink(self):
+        position = self.rect.center
+        self.image = pygame.Surface([(self.res[0]/16), (self.res[0]/80)])
+        self.rect = pygame.Rect(0, 0, (self.res[0]/16), (self.res[0]/80))
+        pygame.draw.rect(self.image, pygame.Color(self.color), self.rect)
+        self.rect.center = position
+        
+        if self.rect.right > (self.res[0]*0.7625):
+            self.rect.right = self.res[0]*0.7625
+        if self.rect.left < (self.res[0]*0.2375 ):
+            self.rect.left = self.res[0]*0.2375
+        
     def reset(self):
         self.rect.center = self.position
 
@@ -153,39 +309,96 @@ class Score(Sprite):
     def __init__(self, res, score=0):
         Sprite.__init__(self)
         self.res = res
-        self.image = pygame.Surface([(self.res[0]*0.225), (self.res[0]/16)])
-        self.rect = self.image.get_rect()
-        self.rect.bottom = self.res[1]
-        self.score = score
         self.font = pygame.font.Font(None, int(round(self.res[0]*0.06)))
+        self.score = score
         self.update()
 
     def update(self, score=0):
-        self.image.fill(pygame.Color("black"))
         self.score += score
-        text = self.font.render(str(self.score), True, pygame.Color("white"))
-        rect = text.get_rect()
-        rect.right = self.res[0]*0.225
-        self.image.blit(text, rect)
+        self.image = self.font.render(str(self.score), True, pygame.Color("white"))
+        self.rect = self.image.get_rect()
+        self.rect.right = self.res[0]*0.225
+        self.rect.bottom = self.res[1]
 
 class Lives(Sprite):
     def __init__(self, res, lives=3):
         Sprite.__init__(self)
         self.res = res
-        self.image = pygame.Surface([(self.res[0]*0.225), (self.res[0]/16)])
-        self.rect = self.image.get_rect()
-        self.rect.bottom = self.res[1]
-        self.rect.right = self.res[0]
-        self.lives = lives
         self.font = pygame.font.Font(None, int(round(self.res[0]*0.06)))
+        self.lives = lives
         self.update()
         
     def update(self, lives=0):
-        self.image.fill(pygame.Color("black"))
         self.lives += lives
-        text = self.font.render("Lives: "+str(self.lives), True, pygame.Color("white"))
-        rect = text.get_rect()
-        self.image.blit(text, rect)        
+        self.image = self.font.render("Lives: "+str(self.lives), True, pygame.Color("white"))
+        self.rect = self.image.get_rect()
+        self.rect.left = self.res[0]*0.775    
+        self.rect.bottom = self.res[1]
+    
+    def addLife(self):
+        pygame.event.post(pygame.event.Event(pygame.USEREVENT,
+                                                {'event': 'lives',
+                                                'lives': +1
+                                                }))        
             
+class Powerup(Sprite):
+        
+        def __init__ (self, type, res):
+            Sprite.__init__(self)
+            self.res = res
+            self.size = self.res[1]/50
+            self.type = type
+            self.collected = False
+            self.countdown = 1
+            linethickness = rounder(self.res[0]/160)
+                
+            if type == 'bigracket':
+                self.countdown = 60 * 25
+                self.imagecolor = 'blue'
+            elif type == 'slowball':
+                self.countdown = 60 * 10
+                self.imagecolor = 'yellow'
+            elif type == '1up':
+                self.imagecolor = 'green'
+            
+            self.image = pygame.Surface((self.size, self.size))
+            pygame.draw.circle(self.image, pygame.Color(self.imagecolor), ((self.size/2), (self.size/2)), (self.size/2))
+            self.rect = self.image.get_rect()
+            width = rounder(self.res[0] * 0.2375 + linethickness)
+            height = rounder(self.res[0] * 0.7625 - linethickness)
+            distance = rounder(self.res[0]/16 + linethickness)
+            self.rect.center = randint(width, height), distance
+            
+        def update(self):
+            self.rect.y += rounder(self.res[0]/400)
+            if self.rect.y > self.res[1]:
+                return False
+            return True
 
-
+class NameSprite(Sprite):
+    
+    def __init__(self, res, position, fontsize):
+        Sprite.__init__(self)
+        self.position = position
+        self.fontsize = fontsize
+        self.text = ''
+        self.color = 'white'
+        self.font = pygame.font.Font(None, self.fontsize)
+        self.reRender()
+        
+    def addLetter(self, letter):
+            if len(self.text) < 15:
+                self.text += str(letter)
+                self.reRender()
+        
+    def removeLetter(self):
+        if len(self.text) == 1:
+            self.text = ''
+        else:
+            self.text = self.text[:-1]
+            self.reRender()
+        
+    def reRender(self):
+        self.image = self.font.render(self.text, True, pygame.Color(self.color))
+        self.rect = self.image.get_rect()
+        self.rect.center = self.position
